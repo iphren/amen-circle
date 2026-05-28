@@ -13,6 +13,11 @@ applications:
         build:
           commands:
             - npm run build
+            # Amplify WEB_COMPUTE doesn't reliably inject env vars into the SSR
+            # Lambda at runtime, so we snapshot the runtime env vars into a
+            # server-only JSON file. instrumentation.ts reads it on cold start.
+            # DATABASE_URL_DIRECT is build-time only and intentionally omitted.
+            - node -e "require('fs').writeFileSync('.next/server/runtime-env.json', JSON.stringify({DATABASE_URL:process.env.DATABASE_URL,SESSION_SECRET:process.env.SESSION_SECRET,ENCRYPTION_KEY:process.env.ENCRYPTION_KEY,WEBAUTHN_RPID:process.env.WEBAUTHN_RPID,WEBAUTHN_ORIGIN:process.env.WEBAUTHN_ORIGIN}))"
       artifacts:
         baseDirectory: .next
         files:
