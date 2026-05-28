@@ -1,7 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireCurrentUser } from "@/lib/current-user";
 import { SiteNav } from "@/components/site-nav";
+
+export const metadata: Metadata = {
+  title: "Rooms",
+};
 import {
   Card,
   CardContent,

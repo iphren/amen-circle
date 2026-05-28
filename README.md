@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Amen Circle
 
-## Getting Started
+A small prayer-community web app. People form a circle, each member submits a
+prayer request, the owner closes the room, and each request gets shuffled and
+assigned to someone other than its author to pray for.
 
-First, run the development server:
+Live at **https://amen.ihs.technology**.
+
+## Stack
+
+- Next.js 16 (App Router, TypeScript strict, Tailwind v4)
+- Prisma 6 + Neon (PostgreSQL, pooled)
+- Passkey-only auth via `@simplewebauthn/server` and iron-session
+- AES-256-GCM encryption for confidential requests
+- Deployed on AWS Amplify (`WEB_COMPUTE`), Terraform-managed (`infra/`)
+
+## Local development
 
 ```bash
+# Use the pinned Node version (≥ 22.12 required for Prisma 6)
+nvm use
+
+# Install + push the Prisma schema to your Neon dev DB
+npm install
+npm run db:push
+
+# Run
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`.env.local` must contain `DATABASE_URL`, `SESSION_SECRET`, `ENCRYPTION_KEY`,
+`WEBAUTHN_RPID`, and `WEBAUTHN_ORIGIN`. For local dev:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+WEBAUTHN_RPID=localhost
+WEBAUTHN_ORIGIN=http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Passkey ceremonies only work on `localhost` or HTTPS — `127.0.0.1` will not work.
 
-## Learn More
+## Useful scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Command | What it does |
+|---|---|
+| `npm run dev` | Next.js dev server |
+| `npm run build` | Production build |
+| `npm run lint` | ESLint |
+| `npm run db:push` | Push `prisma/schema.prisma` to Neon |
+| `npm run db:studio` | Open Prisma Studio against `.env.local`'s DB |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Infrastructure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+All AWS resources (Amplify app, IAM role, Route 53 record, domain association)
+live in `infra/` as Terraform. Secrets are read from SSM Parameter Store at
+build time and snapshotted into `.next/server/runtime-env.json` for the SSR
+Lambda — see `src/instrumentation.ts` for the read side.

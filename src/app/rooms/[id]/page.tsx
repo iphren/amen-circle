@@ -1,7 +1,21 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireCurrentUser } from "@/lib/current-user";
 import { SiteNav } from "@/components/site-nav";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const room = await prisma.prayerRoom.findUnique({
+    where: { id },
+    select: { name: true },
+  });
+  return { title: room?.name ?? "Room" };
+}
 import {
   Card,
   CardContent,

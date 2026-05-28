@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/current-user";
 import { PasskeyForm } from "@/app/auth/passkey-form";
+
+export const metadata: Metadata = {
+  title: "Sign in",
+};
 
 export default async function AuthPage({
   searchParams,

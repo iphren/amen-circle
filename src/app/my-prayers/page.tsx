@@ -1,8 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireCurrentUser } from "@/lib/current-user";
 import { decrypt } from "@/lib/crypto";
 import { SiteNav } from "@/components/site-nav";
+
+export const metadata: Metadata = {
+  title: "My prayers",
+};
 import {
   Card,
   CardContent,
