@@ -110,6 +110,11 @@ export function DashboardActions() {
             maxLength={6}
             value={joinCode}
             onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="characters"
+            spellCheck={false}
+            name="amen-circle-join-code"
           />
           <Button
             variant="outline"

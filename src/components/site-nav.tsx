@@ -11,9 +11,6 @@ export function SiteNav({ user }: { user: CurrentUser }) {
             Amen Circle
           </Link>
           <nav className="flex items-center gap-4 text-sm text-muted-foreground">
-            <Link href="/dashboard" className="hover:text-foreground">
-              Rooms
-            </Link>
             <Link href="/my-prayers" className="hover:text-foreground">
               My prayers
             </Link>
