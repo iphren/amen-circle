@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoomStatus {
+  OPEN
+  CLOSED
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  displayName String
+  createdAt   DateTime @default(now())
+
+  passkeys         Passkey[]
+  memberships      Membership[]
+  ownedRooms       PrayerRoom[]    @relation("RoomOwner")
+  authoredRequests PrayerRequest[] @relation("RequestAuthor")
+  assignedRequests PrayerRequest[] @relation("RequestAssignee")
+}
+
+model Passkey {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialId String   @unique
+  publicKey    Bytes
+  counter      BigInt   @default(0)
+  deviceType   String
+  backedUp     Boolean
+  transports   String[]
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PrayerRoom {
+  id        String     @id @default(cuid())
+  name      String
+  code      String     @unique
+  ownerId   String
+  owner     User       @relation("RoomOwner", fields: [ownerId], references: [id])
+  status    RoomStatus @default(OPEN)
+  createdAt DateTime   @default(now())
+  closedAt  DateTime?
+
+  memberships Membership[]
+  requests    PrayerRequest[]
+
+  @@index([ownerId])
+}
+
+model Membership {
+  id       String     @id @default(cuid())
+  userId   String
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roomId   String
+  room     PrayerRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  joinedAt DateTime   @default(now())
+
+  @@unique([userId, roomId])
+  @@index([roomId])
+}
+
+model PrayerRequest {
+  id             String     @id @default(cuid())
+  roomId         String
+  room           PrayerRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  authorId       String
+  author         User       @relation("RequestAuthor", fields: [authorId], references: [id])
+  assignedToId   String?
+  assignedTo     User?      @relation("RequestAssignee", fields: [assignedToId], references: [id])
+  content        String
+  isConfidential Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  prayedAt       DateTime?
+
+  @@index([roomId])
+  @@index([authorId])
+  @@index([assignedToId])
+}

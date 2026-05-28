@@ -1,0 +1,23 @@
+version: 1
+applications:
+  - frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci
+            - npx prisma generate
+            - |
+              if [ -n "$DATABASE_URL_DIRECT" ]; then
+                DATABASE_URL="$DATABASE_URL_DIRECT" npx prisma db push --skip-generate --accept-data-loss=false
+              fi
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: .next
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+          - .next/cache/**/*
