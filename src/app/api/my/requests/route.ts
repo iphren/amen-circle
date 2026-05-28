@@ -22,7 +22,7 @@ export async function GET() {
     roomName: r.room.name,
     isConfidential: r.isConfidential,
     content: r.isConfidential ? decrypt(r.content) : r.content,
-    author: r.isConfidential ? null : r.author,
+    author: r.author,
     createdAt: r.createdAt,
     prayedAt: r.prayedAt,
   }));

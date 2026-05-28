@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -41,6 +41,39 @@ export function RoomClient({
   const [busy, setBusy] = useState<"submit" | "close" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [okMsg, setOkMsg] = useState<string | null>(null);
+
+  // Poor-man's real-time: while the room is OPEN, poll every 5s for member
+  // joins or owner-initiated close. Pauses when the tab is hidden.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const start = () => {
+      timer = setInterval(() => router.refresh(), 5000);
+    };
+    const stop = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = undefined;
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        router.refresh();
+        start();
+      } else {
+        stop();
+      }
+    };
+
+    if (document.visibilityState === "visible") start();
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [isOpen, router]);
 
   async function submit() {
     setBusy("submit");

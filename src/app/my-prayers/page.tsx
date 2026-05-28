@@ -4,10 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCurrentUser } from "@/lib/current-user";
 import { decrypt } from "@/lib/crypto";
 import { SiteNav } from "@/components/site-nav";
-
-export const metadata: Metadata = {
-  title: "My prayers",
-};
+import { RevealableContent } from "@/components/revealable-content";
 import {
   Card,
   CardContent,
@@ -15,6 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+export const metadata: Metadata = {
+  title: "My prayers",
+};
 
 export default async function MyPrayersPage() {
   const user = await requireCurrentUser();
@@ -34,7 +35,7 @@ export default async function MyPrayersPage() {
     roomName: r.room.name,
     isConfidential: r.isConfidential,
     content: r.isConfidential ? decrypt(r.content) : r.content,
-    authorName: r.isConfidential ? null : r.author.displayName,
+    authorName: r.author.displayName,
     createdAt: r.createdAt,
   }));
 
@@ -72,16 +73,15 @@ export default async function MyPrayersPage() {
                       )}
                     </CardTitle>
                     <CardDescription>
-                      {it.authorName
-                        ? `From ${it.authorName}`
-                        : "Anonymous"}{" "}
-                      · {it.createdAt.toLocaleDateString()}
+                      From {it.authorName} ·{" "}
+                      {it.createdAt.toLocaleDateString()}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                      {it.content}
-                    </p>
+                    <RevealableContent
+                      content={it.content}
+                      isConfidential={it.isConfidential}
+                    />
                   </CardContent>
                 </Card>
               </li>
