@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s · Amen Circle",
   },
   description:
-    "Small circles of trusted friends, lifting each other up in prayer. Passkey-only sign-in; confidential requests stay encrypted end-to-end.",
+    "Small circles of trusted friends, lifting each other up in prayer. Passkey-only sign-in; confidential requests stay encrypted.",
   applicationName: "Amen Circle",
   openGraph: {
     type: "website",
@@ -38,7 +38,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#7c3aed",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
   width: "device-width",
   initialScale: 1,
 };

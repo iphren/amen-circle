@@ -178,7 +178,7 @@ export function RoomClient({
                 Confidential
               </Label>
               <p className="text-xs text-muted-foreground">
-                Encrypts the content and hides your name from the assignee.
+                Encrypts your request so the assignee must tap to reveal it.
               </p>
             </div>
             <Switch
