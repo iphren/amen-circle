@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
@@ -155,6 +156,15 @@ export function PasskeyForm({ initialMode }: { initialMode: Mode }) {
             ? "Have an account? Sign in"
             : "New here? Register"}
         </button>
+
+        {mode === "login" && (
+          <Link
+            href="/auth/recover"
+            className="text-center text-sm text-muted-foreground hover:text-foreground"
+          >
+            Lost your device?
+          </Link>
+        )}
       </CardContent>
     </Card>
   );

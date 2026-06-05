@@ -55,9 +55,48 @@ resource "aws_iam_role_policy" "amplify_service_cloudwatch" {
   })
 }
 
+# Grant the Amplify compute role permission to send account-recovery emails via
+# SES, scoped to the verified identity and the exact From address.
+resource "aws_iam_role_policy" "amplify_ses" {
+  name = "ses-send-recovery-email"
+  role = aws_iam_role.amplify_service.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid      = "SendRecoveryEmail"
+      Effect   = "Allow"
+      Action   = ["ses:SendEmail", "ses:SendRawEmail"]
+      Resource = aws_sesv2_email_identity.recovery.arn
+      Condition = {
+        StringEquals = { "ses:FromAddress" = var.email_from_address }
+      }
+    }]
+  })
+}
+
 data "aws_route53_zone" "root" {
   name         = "ihs.technology."
   private_zone = false
+}
+
+# SES domain identity (in the app's region, eu-west-2) for recovery emails.
+# Easy DKIM is enabled by default; publish the three CNAME tokens below.
+#
+# NOTE: a brand-new SES account starts in the *sandbox* and can only send to
+# verified recipients. Request production access in the SES console (one-time,
+# not Terraformable) before recovery email reaches arbitrary users.
+resource "aws_sesv2_email_identity" "recovery" {
+  email_identity = var.domain_name
+}
+
+resource "aws_route53_record" "ses_dkim" {
+  count   = 3
+  zone_id = data.aws_route53_zone.root.zone_id
+  name    = "${aws_sesv2_email_identity.recovery.dkim_signing_attributes[0].tokens[count.index]}._domainkey.${var.domain_name}"
+  type    = "CNAME"
+  ttl     = 300
+  records = ["${aws_sesv2_email_identity.recovery.dkim_signing_attributes[0].tokens[count.index]}.dkim.amazonses.com"]
 }
 
 resource "aws_amplify_app" "main" {
@@ -94,6 +133,7 @@ resource "aws_amplify_branch" "main" {
     ENCRYPTION_KEY          = data.aws_ssm_parameter.encryption_key.value
     WEBAUTHN_RPID           = var.domain_name
     WEBAUTHN_ORIGIN         = "https://${var.domain_name}"
+    EMAIL_FROM              = var.email_from
     NEXT_TELEMETRY_DISABLED = "1"
   }
 }

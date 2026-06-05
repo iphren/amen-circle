@@ -1,0 +1,133 @@
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { Prisma } from "@prisma/client";
+
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    user: { findUnique: vi.fn(), create: vi.fn() },
+  },
+}));
+vi.mock("@/lib/session", () => ({ getSession: vi.fn() }));
+vi.mock("@/lib/passkey-enroll", () => ({ buildEnrollmentOptions: vi.fn() }));
+
+import { POST } from "@/app/api/auth/register/start/route";
+import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/session";
+import { buildEnrollmentOptions } from "@/lib/passkey-enroll";
+
+function jsonRequest(body: unknown) {
+  return new Request("http://localhost/api/auth/register/start", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+function fakeSession() {
+  return { save: vi.fn().mockResolvedValue(undefined) } as Record<
+    string,
+    unknown
+  > & { save: ReturnType<typeof vi.fn> };
+}
+
+const findUnique = vi.mocked(prisma.user.findUnique);
+const create = vi.mocked(prisma.user.create);
+const enrollOpts = vi.mocked(buildEnrollmentOptions);
+const session = vi.mocked(getSession);
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  enrollOpts.mockResolvedValue({
+    options: { challenge: "chal" } as never,
+    challenge: "chal",
+  });
+});
+
+describe("register/start — account-takeover guard", () => {
+  it("rejects when the email already has a passkey (409)", async () => {
+    findUnique.mockResolvedValue({
+      id: "victim",
+      passkeys: [{ id: "pk1" }],
+    } as never);
+
+    const res = await POST(
+      jsonRequest({ email: "victim@example.com", displayName: "Mallory" }),
+    );
+
+    expect(res.status).toBe(409);
+    expect(create).not.toHaveBeenCalled();
+    expect(enrollOpts).not.toHaveBeenCalled();
+  });
+
+  it("creates a passkey enrollment for a brand-new email (200)", async () => {
+    findUnique.mockResolvedValue(null);
+    create.mockResolvedValue({
+      id: "newuser",
+      email: "new@example.com",
+      displayName: "Newbie",
+      passkeys: [],
+    } as never);
+    const s = fakeSession();
+    session.mockResolvedValue(s as never);
+
+    const res = await POST(
+      jsonRequest({ email: "New@Example.com", displayName: " Newbie " }),
+    );
+
+    expect(res.status).toBe(200);
+    // Email is normalised to lowercase, displayName trimmed.
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { email: "new@example.com", displayName: "Newbie" },
+      }),
+    );
+    expect(enrollOpts).toHaveBeenCalledWith("newuser");
+    expect(s.pendingUserId).toBe("newuser");
+    expect(s.challenge).toBe("chal");
+    expect(s.save).toHaveBeenCalledOnce();
+  });
+
+  it("resumes registration for an existing user that has zero passkeys (200)", async () => {
+    findUnique.mockResolvedValue({
+      id: "halfsignup",
+      passkeys: [],
+    } as never);
+    const s = fakeSession();
+    session.mockResolvedValue(s as never);
+
+    const res = await POST(
+      jsonRequest({ email: "half@example.com", displayName: "Half" }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(create).not.toHaveBeenCalled();
+    expect(enrollOpts).toHaveBeenCalledWith("halfsignup");
+    expect(s.pendingUserId).toBe("halfsignup");
+  });
+
+  it("returns 400 when email or displayName is missing", async () => {
+    const res = await POST(jsonRequest({ email: "only@example.com" }));
+    expect(res.status).toBe(400);
+    expect(findUnique).not.toHaveBeenCalled();
+  });
+
+  it("handles the concurrent-signup race: P2002 then a real account wins (409)", async () => {
+    // First lookup: no row yet. create() loses the race and throws P2002.
+    // Re-fetch finds the now-existing account, which already has a passkey.
+    findUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: "winner", passkeys: [{ id: "pk" }] } as never);
+    create.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError("dup", {
+        code: "P2002",
+        clientVersion: "6.19.3",
+      }),
+    );
+
+    const res = await POST(
+      jsonRequest({ email: "race@example.com", displayName: "Racer" }),
+    );
+
+    expect(res.status).toBe(409);
+    expect(enrollOpts).not.toHaveBeenCalled();
+  });
+});

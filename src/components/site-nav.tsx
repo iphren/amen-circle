@@ -14,6 +14,9 @@ export function SiteNav({ user }: { user: CurrentUser }) {
             <Link href="/my-prayers" className="hover:text-foreground">
               My prayers
             </Link>
+            <Link href="/settings" className="hover:text-foreground">
+              Settings
+            </Link>
           </nav>
         </div>
         <div className="flex items-center gap-3 text-sm">

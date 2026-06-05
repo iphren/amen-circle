@@ -1,21 +1,22 @@
 import { NextResponse } from "next/server";
 import type { RegistrationResponseJSON } from "@simplewebauthn/server";
 import { getSession } from "@/lib/session";
+import { requireUserId } from "@/lib/auth-guard";
 import { verifyAndStorePasskey } from "@/lib/passkey-enroll";
 
 export async function POST(req: Request) {
+  const auth = await requireUserId();
+  if (auth instanceof NextResponse) return auth;
+
   const response = (await req.json()) as RegistrationResponseJSON;
   const session = await getSession();
 
-  if (!session.challenge || !session.pendingUserId) {
-    return NextResponse.json(
-      { error: "no pending registration" },
-      { status: 400 },
-    );
+  if (!session.challenge) {
+    return NextResponse.json({ error: "no pending enrollment" }, { status: 400 });
   }
 
   const result = await verifyAndStorePasskey({
-    userId: session.pendingUserId,
+    userId: auth.userId,
     response,
     expectedChallenge: session.challenge,
   });
@@ -24,10 +25,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "verification failed" }, { status: 400 });
   }
 
-  session.userId = session.pendingUserId;
+  // The user is already signed in; only clear the transient challenge.
   delete session.challenge;
-  delete session.pendingUserId;
   await session.save();
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, passkeyId: result.passkeyId });
 }

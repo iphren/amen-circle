@@ -26,3 +26,18 @@ variable "certificate_arn" {
   type        = string
   description = "ACM certificate ARN in us-east-1 covering the domain"
 }
+
+# Full RFC 5322 "From" header used for account-recovery emails (may include a
+# display name). The address part must belong to the verified SES identity.
+variable "email_from" {
+  type    = string
+  default = "Amen Circle <no-reply@amen.ihs.technology>"
+}
+
+# Bare sending address, used to scope the SES IAM policy via the
+# ses:FromAddress condition key (which matches the address only, not the
+# display name). Keep the address part in sync with var.email_from.
+variable "email_from_address" {
+  type    = string
+  default = "no-reply@amen.ihs.technology"
+}
