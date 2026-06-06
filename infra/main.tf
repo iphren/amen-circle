@@ -55,11 +55,19 @@ resource "aws_iam_role_policy" "amplify_service_cloudwatch" {
   })
 }
 
-# Grant the Amplify compute role permission to send account-recovery emails via
-# SES, scoped to the verified identity and the exact From address.
-resource "aws_iam_role_policy" "amplify_ses" {
+# Amplify WEB_COMPUTE SSR does NOT expose an assumable execution role to the
+# runtime AWS SDK (the iam_service_role_arn above is only for builds/logging), so
+# a role policy can't grant the SSR Lambda SES access. Instead we use a tightly
+# scoped IAM user and pass its static access key to the app as env vars. The key
+# only permits sending from the one verified address.
+resource "aws_iam_user" "ses_sender" {
+  name = "${var.app_name}-ses-sender"
+  tags = local.common_tags
+}
+
+resource "aws_iam_user_policy" "ses_sender" {
   name = "ses-send-recovery-email"
-  role = aws_iam_role.amplify_service.name
+  user = aws_iam_user.ses_sender.name
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -73,6 +81,10 @@ resource "aws_iam_role_policy" "amplify_ses" {
       }
     }]
   })
+}
+
+resource "aws_iam_access_key" "ses_sender" {
+  user = aws_iam_user.ses_sender.name
 }
 
 data "aws_route53_zone" "root" {
@@ -127,13 +139,18 @@ resource "aws_amplify_branch" "main" {
   enable_pull_request_preview = false
 
   environment_variables = {
-    DATABASE_URL            = data.aws_ssm_parameter.database_url.value
-    DATABASE_URL_DIRECT     = data.aws_ssm_parameter.database_url_direct.value
-    SESSION_SECRET          = data.aws_ssm_parameter.session_secret.value
-    ENCRYPTION_KEY          = data.aws_ssm_parameter.encryption_key.value
-    WEBAUTHN_RPID           = var.domain_name
-    WEBAUTHN_ORIGIN         = "https://${var.domain_name}"
-    EMAIL_FROM              = var.email_from
+    DATABASE_URL        = data.aws_ssm_parameter.database_url.value
+    DATABASE_URL_DIRECT = data.aws_ssm_parameter.database_url_direct.value
+    SESSION_SECRET      = data.aws_ssm_parameter.session_secret.value
+    ENCRYPTION_KEY      = data.aws_ssm_parameter.encryption_key.value
+    WEBAUTHN_RPID       = var.domain_name
+    WEBAUTHN_ORIGIN     = "https://${var.domain_name}"
+    EMAIL_FROM          = var.email_from
+    # SSR runtime has no role credentials, so the SES client uses these explicit
+    # keys (non-reserved names; AWS_* env vars are reserved by Lambda).
+    SES_REGION              = local.region
+    SES_ACCESS_KEY_ID       = aws_iam_access_key.ses_sender.id
+    SES_SECRET_ACCESS_KEY   = aws_iam_access_key.ses_sender.secret
     NEXT_TELEMETRY_DISABLED = "1"
   }
 }

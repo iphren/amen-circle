@@ -1,9 +1,29 @@
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
-// Region and credentials resolve from the Lambda execution role / environment
-// (the default AWS provider chain) — no static keys. On Amplify WEB_COMPUTE the
-// SSR Lambda provides AWS_REGION and role credentials automatically.
-const client = new SESClient({});
+// Amplify WEB_COMPUTE SSR does not expose an assumable role to the runtime AWS
+// SDK, so the default provider chain finds no credentials. We pass an explicit,
+// tightly-scoped IAM access key via env vars instead (built lazily so a missing
+// var surfaces a clear error at send time rather than crashing on import).
+let client: SESClient | undefined;
+
+function getClient(): SESClient {
+  if (client) return client;
+
+  const region = process.env.SES_REGION;
+  const accessKeyId = process.env.SES_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.SES_SECRET_ACCESS_KEY;
+  if (!region || !accessKeyId || !secretAccessKey) {
+    throw new Error(
+      "SES_REGION, SES_ACCESS_KEY_ID and SES_SECRET_ACCESS_KEY are required to send email",
+    );
+  }
+
+  client = new SESClient({
+    region,
+    credentials: { accessKeyId, secretAccessKey },
+  });
+  return client;
+}
 
 function fromAddress(): string {
   const from = process.env.EMAIL_FROM;
@@ -38,7 +58,7 @@ export async function sendRecoveryEmail(args: {
     <p>If you didn't request this, you can safely ignore this email — nothing changes.</p>
   `;
 
-  await client.send(
+  await getClient().send(
     new SendEmailCommand({
       Source: fromAddress(),
       Destination: { ToAddresses: [to] },
