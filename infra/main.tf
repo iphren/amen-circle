@@ -111,6 +111,43 @@ resource "aws_route53_record" "ses_dkim" {
   records = ["${aws_sesv2_email_identity.recovery.dkim_signing_attributes[0].tokens[count.index]}.dkim.amazonses.com"]
 }
 
+# Custom MAIL FROM subdomain so SPF aligns to our domain (not amazonses.com) and
+# clients stop showing the "via amazonses.com" annotation. Falls back to the SES
+# default if the MX lookup fails, so a DNS hiccup never blocks sending.
+resource "aws_sesv2_email_identity_mail_from_attributes" "recovery" {
+  email_identity         = aws_sesv2_email_identity.recovery.email_identity
+  mail_from_domain       = "mail.${var.domain_name}"
+  behavior_on_mx_failure = "USE_DEFAULT_VALUE"
+}
+
+resource "aws_route53_record" "ses_mail_from_mx" {
+  zone_id = data.aws_route53_zone.root.zone_id
+  name    = "mail.${var.domain_name}"
+  type    = "MX"
+  ttl     = 300
+  records = ["10 feedback-smtp.${local.region}.amazonses.com"]
+}
+
+resource "aws_route53_record" "ses_mail_from_spf" {
+  zone_id = data.aws_route53_zone.root.zone_id
+  name    = "mail.${var.domain_name}"
+  type    = "TXT"
+  ttl     = 300
+  records = ["v=spf1 include:amazonses.com ~all"]
+}
+
+# DMARC tells mailbox providers we manage the domain and what to do with
+# unauthenticated mail. Start at p=none (monitor only — never quarantines
+# legitimate mail); tighten to quarantine/reject once you've confirmed
+# alignment. DKIM already aligns, so DMARC passes.
+resource "aws_route53_record" "ses_dmarc" {
+  zone_id = data.aws_route53_zone.root.zone_id
+  name    = "_dmarc.${var.domain_name}"
+  type    = "TXT"
+  ttl     = 300
+  records = ["v=DMARC1; p=none;"]
+}
+
 resource "aws_amplify_app" "main" {
   name         = var.app_name
   repository   = "https://github.com/${var.github_repo}"

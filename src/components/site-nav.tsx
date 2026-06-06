@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/logout-button";
+import { NavLinks } from "@/components/nav-links";
 import type { CurrentUser } from "@/lib/current-user";
 
 export function SiteNav({ user }: { user: CurrentUser }) {
@@ -10,14 +11,7 @@ export function SiteNav({ user }: { user: CurrentUser }) {
           <Link href="/dashboard" className="font-semibold tracking-tight">
             Amen Circle
           </Link>
-          <nav className="flex items-center gap-4 text-sm text-muted-foreground">
-            <Link href="/my-prayers" className="hover:text-foreground">
-              My prayers
-            </Link>
-            <Link href="/settings" className="hover:text-foreground">
-              Settings
-            </Link>
-          </nav>
+          <NavLinks />
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span className="text-muted-foreground">{user.displayName}</span>
