@@ -62,7 +62,7 @@ export default async function MyPrayersPage() {
                     <CardTitle className="flex items-center justify-between gap-2 text-base">
                       <Link
                         href={`/rooms/${it.roomId}`}
-                        className="truncate hover:underline"
+                        className="min-w-0 truncate hover:underline"
                       >
                         {it.roomName}
                       </Link>

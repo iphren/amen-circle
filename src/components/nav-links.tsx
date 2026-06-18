@@ -38,7 +38,13 @@ export function NavLinks({
             key={href}
             href={href}
             aria-current={isActive ? "page" : undefined}
-            onClick={onNavigate}
+            onClick={(e) => {
+              // Let modified clicks (new tab/window) keep their default
+              // behavior; only close the drawer on a plain left click.
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0)
+                return;
+              onNavigate?.();
+            }}
             className={cn(
               "hover:text-foreground",
               isVertical && "rounded-md px-3 py-2 text-base hover:bg-muted",

@@ -59,7 +59,7 @@ export default async function DashboardPage() {
                       <Card className="transition hover:border-foreground/30">
                         <CardHeader>
                           <CardTitle className="flex items-center justify-between gap-2 text-base">
-                            <span className="truncate">{m.room.name}</span>
+                            <span className="min-w-0 truncate">{m.room.name}</span>
                             <span
                               className={`shrink-0 rounded px-2 py-0.5 text-xs font-medium ${
                                 m.room.status === "OPEN"
