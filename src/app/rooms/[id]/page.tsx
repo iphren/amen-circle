@@ -51,7 +51,7 @@ export default async function RoomPage({
     return (
       <>
         <SiteNav user={user} />
-        <main className="mx-auto max-w-2xl px-4 py-12 text-center">
+        <main className="mx-auto max-w-2xl px-3 py-12 text-center sm:px-4">
           <h1 className="text-xl font-semibold">Not a member</h1>
           <p className="mt-2 text-muted-foreground">
             Ask the owner to share the room code with you.
@@ -85,10 +85,10 @@ export default async function RoomPage({
   return (
     <>
       <SiteNav user={user} />
-      <main className="mx-auto max-w-4xl px-4 py-8">
+      <main className="mx-auto max-w-5xl px-3 py-6 sm:px-4 sm:py-8">
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold tracking-tight break-words">
               {room.name}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">

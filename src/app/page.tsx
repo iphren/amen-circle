@@ -8,7 +8,7 @@ export default async function Home() {
   if (user) redirect("/dashboard");
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-6 py-16">
+    <main className="flex min-h-screen flex-col items-center justify-center px-4 py-16 sm:px-6">
       <div className="w-full max-w-md text-center">
         <h1 className="text-4xl font-semibold tracking-tight">Amen Circle</h1>
         <p className="mt-3 text-muted-foreground">

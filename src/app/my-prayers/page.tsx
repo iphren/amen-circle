@@ -42,7 +42,7 @@ export default async function MyPrayersPage() {
   return (
     <>
       <SiteNav user={user} />
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <main className="mx-auto max-w-4xl px-3 py-6 sm:px-4 sm:py-8">
         <h1 className="text-2xl font-semibold tracking-tight">My prayers</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Requests entrusted to you across all your rooms.
@@ -59,15 +59,15 @@ export default async function MyPrayersPage() {
               <li key={it.id}>
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center justify-between text-base">
+                    <CardTitle className="flex items-center justify-between gap-2 text-base">
                       <Link
                         href={`/rooms/${it.roomId}`}
-                        className="hover:underline"
+                        className="truncate hover:underline"
                       >
                         {it.roomName}
                       </Link>
                       {it.isConfidential && (
-                        <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                        <span className="shrink-0 rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
                           confidential
                         </span>
                       )}

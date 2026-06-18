@@ -19,7 +19,7 @@ export default async function AuthPage({
   const initialMode = mode === "register" ? "register" : "login";
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-6 py-16">
+    <main className="flex min-h-screen items-center justify-center px-4 py-16 sm:px-6">
       <PasskeyForm initialMode={initialMode} />
     </main>
   );
