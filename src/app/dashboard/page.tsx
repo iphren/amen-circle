@@ -40,7 +40,7 @@ export default async function DashboardPage() {
   return (
     <>
       <SiteNav user={user} />
-      <main className="mx-auto max-w-4xl px-4 py-8">
+      <main className="mx-auto max-w-5xl px-3 py-6 sm:px-4 sm:py-8">
         <div className="flex flex-col gap-8">
           <DashboardActions />
 
@@ -58,10 +58,10 @@ export default async function DashboardPage() {
                     <Link href={`/rooms/${m.room.id}`} className="block">
                       <Card className="transition hover:border-foreground/30">
                         <CardHeader>
-                          <CardTitle className="flex items-center justify-between text-base">
-                            <span>{m.room.name}</span>
+                          <CardTitle className="flex items-center justify-between gap-2 text-base">
+                            <span className="min-w-0 truncate">{m.room.name}</span>
                             <span
-                              className={`rounded px-2 py-0.5 text-xs font-medium ${
+                              className={`shrink-0 rounded px-2 py-0.5 text-xs font-medium ${
                                 m.room.status === "OPEN"
                                   ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                                   : "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"

@@ -1,21 +1,33 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/logout-button";
 import { NavLinks } from "@/components/nav-links";
+import { MobileMenu } from "@/components/mobile-menu";
 import type { CurrentUser } from "@/lib/current-user";
 
 export function SiteNav({ user }: { user: CurrentUser }) {
   return (
-    <header className="border-b">
-      <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
-        <div className="flex items-center gap-6">
+    <header className="border-b pt-[env(safe-area-inset-top)]">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-3 sm:px-4">
+        <div className="flex min-w-0 items-center gap-6">
           <Link href="/dashboard" className="font-semibold tracking-tight">
             Amen Circle
           </Link>
-          <NavLinks />
+          <div className="hidden md:block">
+            <NavLinks />
+          </div>
         </div>
-        <div className="flex items-center gap-3 text-sm">
-          <span className="text-muted-foreground">{user.displayName}</span>
+
+        {/* Desktop: name + sign out inline */}
+        <div className="hidden items-center gap-3 text-sm md:flex">
+          <span className="max-w-[12rem] truncate text-muted-foreground">
+            {user.displayName}
+          </span>
           <LogoutButton />
+        </div>
+
+        {/* Mobile: collapse everything into a drawer */}
+        <div className="md:hidden">
+          <MobileMenu displayName={user.displayName} />
         </div>
       </div>
     </header>
