@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
@@ -8,14 +9,19 @@ export interface CurrentUser {
   displayName: string;
 }
 
-export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const session = await getSession();
-  if (!session.userId) return null;
-  return prisma.user.findUnique({
-    where: { id: session.userId },
-    select: { id: true, email: true, displayName: true },
-  });
-}
+// Memoized per request so multiple resolvers in one render (e.g. a page and its
+// generateMetadata) share a single session read + user lookup instead of each
+// hitting the DB.
+export const getCurrentUser = cache(
+  async (): Promise<CurrentUser | null> => {
+    const session = await getSession();
+    if (!session.userId) return null;
+    return prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { id: true, email: true, displayName: true },
+    });
+  },
+);
 
 export async function requireCurrentUser(): Promise<CurrentUser> {
   const user = await getCurrentUser();

@@ -1,21 +1,9 @@
+import { cache } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireCurrentUser } from "@/lib/current-user";
 import { SiteNav } from "@/components/site-nav";
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}): Promise<Metadata> {
-  const { id } = await params;
-  const room = await prisma.prayerRoom.findUnique({
-    where: { id },
-    select: { name: true },
-  });
-  return { title: room?.name ?? "Room" };
-}
 import {
   Card,
   CardContent,
@@ -25,15 +13,11 @@ import {
 } from "@/components/ui/card";
 import { RoomClient } from "@/app/rooms/[id]/room-client";
 
-export default async function RoomPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const user = await requireCurrentUser();
-  const { id } = await params;
-
-  const room = await prisma.prayerRoom.findUnique({
+// Memoized per request so generateMetadata and the page component share a
+// single query instead of each fetching the same room. Selects the superset
+// both consumers need.
+const getRoom = cache((id: string) =>
+  prisma.prayerRoom.findUnique({
     where: { id },
     include: {
       memberships: {
@@ -42,7 +26,28 @@ export default async function RoomPage({
       },
       requests: { select: { authorId: true, isConfidential: true } },
     },
-  });
+  }),
+);
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const room = await getRoom(id);
+  return { title: room?.name ?? "Room" };
+}
+
+export default async function RoomPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const user = await requireCurrentUser();
+  const { id } = await params;
+
+  const room = await getRoom(id);
 
   if (!room) notFound();
 
