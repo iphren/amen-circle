@@ -40,7 +40,7 @@ export default async function DashboardPage() {
   return (
     <>
       <SiteNav user={user} />
-      <main className="mx-auto max-w-4xl px-3 py-6 sm:px-4 sm:py-8">
+      <main className="mx-auto max-w-5xl px-3 py-6 sm:px-4 sm:py-8">
         <div className="flex flex-col gap-8">
           <DashboardActions />
 
