@@ -158,12 +158,20 @@ export function PasskeyForm({ initialMode }: { initialMode: Mode }) {
         </button>
 
         {mode === "login" && (
-          <Link
-            href="/auth/recover"
-            className="text-center text-sm text-muted-foreground hover:text-foreground"
-          >
-            Lost your device?
-          </Link>
+          <>
+            <Link
+              href="/auth/email-login"
+              className="text-center text-sm text-muted-foreground hover:text-foreground"
+            >
+              Trouble with your passkey? Email me a sign-in link
+            </Link>
+            <Link
+              href="/auth/recover"
+              className="text-center text-sm text-muted-foreground hover:text-foreground"
+            >
+              Lost your device?
+            </Link>
+          </>
         )}
       </CardContent>
     </Card>

@@ -3,6 +3,9 @@ import { createHash, randomBytes } from "node:crypto";
 // Recovery links are valid for 20 minutes.
 export const RECOVERY_TTL_MS = 20 * 60 * 1000;
 
+// Email sign-in (magic) links are valid for 15 minutes.
+export const LOGIN_LINK_TTL_MS = 15 * 60 * 1000;
+
 /**
  * Generate a single-use recovery token. The caller emails `raw` (inside the
  * recovery link) and stores only `hash` — the raw token never touches the DB,

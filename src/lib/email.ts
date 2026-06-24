@@ -72,3 +72,43 @@ export async function sendRecoveryEmail(args: {
     }),
   );
 }
+
+export async function sendLoginLinkEmail(args: {
+  to: string;
+  loginUrl: string;
+}): Promise<void> {
+  const { to, loginUrl } = args;
+
+  const text = [
+    "Someone (hopefully you) asked to sign in to Amen Circle with an email link.",
+    "",
+    "Open this link to sign in. It expires in 15 minutes and can be used once.",
+    "",
+    loginUrl,
+    "",
+    "If you didn't request this, you can safely ignore this email — nothing changes.",
+  ].join("\n");
+
+  const html = `
+    <p>Someone (hopefully you) asked to sign in to <strong>Amen Circle</strong> with an email link.</p>
+    <p>
+      <a href="${loginUrl}">Sign in to Amen Circle</a><br />
+      This link expires in 15 minutes and can be used once.
+    </p>
+    <p>If you didn't request this, you can safely ignore this email — nothing changes.</p>
+  `;
+
+  await getClient().send(
+    new SendEmailCommand({
+      Source: fromAddress(),
+      Destination: { ToAddresses: [to] },
+      Message: {
+        Subject: { Data: "Your Amen Circle sign-in link", Charset: "UTF-8" },
+        Body: {
+          Text: { Data: text, Charset: "UTF-8" },
+          Html: { Data: html, Charset: "UTF-8" },
+        },
+      },
+    }),
+  );
+}
