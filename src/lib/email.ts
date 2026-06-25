@@ -31,37 +31,129 @@ function fromAddress(): string {
   return from;
 }
 
+// A monitored reply address signals a legitimate transactional sender. A
+// no-reply From with no Reply-To at all is itself a mild phishing signal, so we
+// always set one — falling back to the From address when EMAIL_REPLY_TO is unset.
+function replyToAddress(): string {
+  return process.env.EMAIL_REPLY_TO || fromAddress();
+}
+
+const APP_NAME = "Amen Circle";
+
+// Postal address shown in the footer. A physical address is a strong "this is
+// legitimate transactional mail, not phishing" signal for spam filters (and is
+// expected by anti-spam law for bulk senders). REPLACE the placeholder below
+// with the real registered address — overridable via EMAIL_POSTAL_ADDRESS.
+const ORG_POSTAL_ADDRESS =
+  process.env.EMAIL_POSTAL_ADDRESS || "Amen Circle — postal address pending";
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// Shared layout for transactional emails. Produces a full HTML document plus a
+// matching plain-text part. Key anti-phishing properties:
+//   - the action link's visible text is a plain action label AND the full,
+//     literal URL is shown as text, so the displayed link matches its href
+//     (eliminates the brand-name/URL-mismatch heuristic);
+//   - real branding, an explanation of why the email was received, and a
+//     postal address in the footer (so it reads as legitimate, not sparse).
+function renderEmail(args: {
+  bodyIntro: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  expiryNote: string;
+}): { html: string; text: string } {
+  const { bodyIntro, ctaLabel, ctaUrl, expiryNote } = args;
+
+  const safeUrl = escapeHtml(ctaUrl);
+  const whyLine = `You're receiving this because this email address was used to sign in to ${APP_NAME}.`;
+  const ignoreLine =
+    "If you didn't request this, you can safely ignore this email — nothing changes.";
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${escapeHtml(APP_NAME)}</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f4f4f5;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;">
+      <tr>
+        <td align="center" style="padding:24px 12px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:8px;border:1px solid #e4e4e7;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#18181b;">
+            <tr>
+              <td style="padding:24px 24px 8px;font-size:18px;font-weight:600;">${escapeHtml(APP_NAME)}</td>
+            </tr>
+            <tr>
+              <td style="padding:0 24px;font-size:15px;line-height:1.5;">
+                <p style="margin:8px 0 16px;">${escapeHtml(bodyIntro)}</p>
+                <p style="margin:0 0 16px;">
+                  <a href="${safeUrl}" style="display:inline-block;background:#18181b;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:6px;font-weight:600;">${escapeHtml(ctaLabel)}</a>
+                </p>
+                <p style="margin:0 0 8px;font-size:13px;color:#52525b;">Or paste this link into your browser:</p>
+                <p style="margin:0 0 16px;font-size:13px;word-break:break-all;"><a href="${safeUrl}" style="color:#2563eb;">${safeUrl}</a></p>
+                <p style="margin:0 0 16px;font-size:13px;color:#52525b;">${escapeHtml(expiryNote)}</p>
+                <p style="margin:0 0 8px;font-size:13px;color:#52525b;">${escapeHtml(ignoreLine)}</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 24px 24px;border-top:1px solid #e4e4e7;font-size:12px;line-height:1.5;color:#71717a;">
+                <p style="margin:8px 0 4px;">${escapeHtml(whyLine)}</p>
+                <p style="margin:0;">${escapeHtml(ORG_POSTAL_ADDRESS)}</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+  const text = [
+    APP_NAME,
+    "",
+    bodyIntro,
+    "",
+    `${ctaLabel}:`,
+    ctaUrl,
+    "",
+    expiryNote,
+    "",
+    ignoreLine,
+    "",
+    "—",
+    whyLine,
+    ORG_POSTAL_ADDRESS,
+  ].join("\n");
+
+  return { html, text };
+}
+
 export async function sendRecoveryEmail(args: {
   to: string;
   recoverUrl: string;
 }): Promise<void> {
   const { to, recoverUrl } = args;
 
-  const text = [
-    "Someone (hopefully you) asked to recover access to your Amen Circle account.",
-    "",
-    "Open this link to set up a new passkey. It expires in 20 minutes and can be",
-    "used once. Setting up a new passkey removes any old passkeys on the account.",
-    "",
-    recoverUrl,
-    "",
-    "If you didn't request this, you can safely ignore this email — nothing changes.",
-  ].join("\n");
-
-  const html = `
-    <p>Someone (hopefully you) asked to recover access to your <strong>Amen Circle</strong> account.</p>
-    <p>
-      <a href="${recoverUrl}">Set up a new passkey</a><br />
-      This link expires in 20 minutes and can be used once. Setting up a new
-      passkey removes any old passkeys on the account.
-    </p>
-    <p>If you didn't request this, you can safely ignore this email — nothing changes.</p>
-  `;
+  const { html, text } = renderEmail({
+    bodyIntro: `You asked to recover access to your ${APP_NAME} account.`,
+    ctaLabel: "Set up a new passkey",
+    ctaUrl: recoverUrl,
+    expiryNote:
+      "This link expires in 20 minutes and can be used once. Setting up a new passkey removes any old passkeys on the account.",
+  });
 
   await getClient().send(
     new SendEmailCommand({
       Source: fromAddress(),
       Destination: { ToAddresses: [to] },
+      ReplyToAddresses: [replyToAddress()],
       Message: {
         Subject: { Data: "Recover your Amen Circle account", Charset: "UTF-8" },
         Body: {
@@ -79,29 +171,18 @@ export async function sendLoginLinkEmail(args: {
 }): Promise<void> {
   const { to, loginUrl } = args;
 
-  const text = [
-    "Someone (hopefully you) asked to sign in to Amen Circle with an email link.",
-    "",
-    "Open this link to sign in. It expires in 15 minutes and can be used once.",
-    "",
-    loginUrl,
-    "",
-    "If you didn't request this, you can safely ignore this email — nothing changes.",
-  ].join("\n");
-
-  const html = `
-    <p>Someone (hopefully you) asked to sign in to <strong>Amen Circle</strong> with an email link.</p>
-    <p>
-      <a href="${loginUrl}">Sign in to Amen Circle</a><br />
-      This link expires in 15 minutes and can be used once.
-    </p>
-    <p>If you didn't request this, you can safely ignore this email — nothing changes.</p>
-  `;
+  const { html, text } = renderEmail({
+    bodyIntro: `You asked to sign in to ${APP_NAME} with an email link.`,
+    ctaLabel: "Sign in",
+    ctaUrl: loginUrl,
+    expiryNote: "This link expires in 15 minutes and can be used once.",
+  });
 
   await getClient().send(
     new SendEmailCommand({
       Source: fromAddress(),
       Destination: { ToAddresses: [to] },
+      ReplyToAddresses: [replyToAddress()],
       Message: {
         Subject: { Data: "Your Amen Circle sign-in link", Charset: "UTF-8" },
         Body: {
