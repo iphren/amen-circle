@@ -59,7 +59,7 @@ export default async function MyPrayersPage() {
               <li key={it.id}>
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center justify-between gap-2 text-base">
+                    <CardTitle className="flex min-w-0 items-center justify-between gap-2 text-base">
                       <Link
                         href={`/rooms/${it.roomId}`}
                         className="min-w-0 truncate hover:underline"

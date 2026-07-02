@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DashboardActions } from "@/app/dashboard/dashboard-actions";
+import { RoomStatusChip } from "@/components/room-status-chip";
 
 export default async function DashboardPage() {
   const user = await requireCurrentUser();
@@ -58,17 +59,9 @@ export default async function DashboardPage() {
                     <Link href={`/rooms/${m.room.id}`} className="block">
                       <Card className="transition hover:border-foreground/30">
                         <CardHeader>
-                          <CardTitle className="flex items-center justify-between gap-2 text-base">
+                          <CardTitle className="flex min-w-0 items-center justify-between gap-2 text-base">
                             <span className="min-w-0 truncate">{m.room.name}</span>
-                            <span
-                              className={`shrink-0 rounded px-2 py-0.5 text-xs font-medium ${
-                                m.room.status === "OPEN"
-                                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                                  : "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
-                              }`}
-                            >
-                              {m.room.status.toLowerCase()}
-                            </span>
+                            <RoomStatusChip status={m.room.status} />
                           </CardTitle>
                           <CardDescription>
                             Code <code className="font-mono">{m.room.code}</code>{" "}

@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { RoomClient } from "@/app/rooms/[id]/room-client";
+import { RoomStatusChip } from "@/components/room-status-chip";
 
 // Memoized per request so generateMetadata and the page component share a
 // single query instead of each fetching the same room. Selects the superset
@@ -93,17 +94,15 @@ export default async function RoomPage({
       <main className="mx-auto max-w-5xl px-3 py-6 sm:px-4 sm:py-8">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold tracking-tight break-words">
-              {room.name}
-            </h1>
+            <div className="flex min-w-0 items-center gap-2">
+              <h1 className="min-w-0 truncate text-2xl font-semibold tracking-tight">
+                {room.name}
+              </h1>
+              <RoomStatusChip status={room.status} />
+            </div>
             <p className="mt-1 text-sm text-muted-foreground">
               Code <code className="font-mono">{room.code}</code> · {members.length}{" "}
-              member{members.length === 1 ? "" : "s"} ·{" "}
-              <span
-                className={isOpen ? "text-emerald-700" : "text-zinc-500"}
-              >
-                {room.status.toLowerCase()}
-              </span>
+              member{members.length === 1 ? "" : "s"}
             </p>
           </div>
         </div>
