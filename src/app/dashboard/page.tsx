@@ -42,7 +42,7 @@ export default async function DashboardPage() {
   return (
     <>
       <SiteNav user={user} />
-      <main className="mx-auto w-full max-w-7xl px-3 py-6 sm:px-4 sm:py-8">
+      <main className="mx-auto max-w-5xl px-3 py-6 sm:px-4 sm:py-8">
         <div className="flex flex-col gap-8">
           {/* Constrain the action bar so it doesn't stretch; the rooms grid
               below is free to fill the full page width. */}
