@@ -13,6 +13,7 @@ export async function GET() {
       id: true,
       deviceType: true,
       backedUp: true,
+      name: true,
       createdAt: true,
     },
     orderBy: { createdAt: "asc" },

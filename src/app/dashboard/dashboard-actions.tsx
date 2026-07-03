@@ -105,6 +105,9 @@ export function DashboardActions() {
               onClick={createRoom}
               disabled={busy !== null || !canCreate}
               variant={canCreate ? "default" : "outline"}
+              className={
+                canCreate ? "bg-green-600 text-white hover:bg-green-700" : undefined
+              }
             >
               {busy === "create" ? "Creating…" : "Create room"}
             </Button>

@@ -13,7 +13,13 @@ export default async function SettingsPage() {
 
   const passkeys = await prisma.passkey.findMany({
     where: { userId: user.id },
-    select: { id: true, deviceType: true, backedUp: true, createdAt: true },
+    select: {
+      id: true,
+      deviceType: true,
+      backedUp: true,
+      name: true,
+      createdAt: true,
+    },
     orderBy: { createdAt: "asc" },
   });
 
@@ -31,6 +37,7 @@ export default async function SettingsPage() {
               id: p.id,
               deviceType: p.deviceType,
               backedUp: p.backedUp,
+              name: p.name,
               createdAt: p.createdAt.toISOString(),
             }))}
           />

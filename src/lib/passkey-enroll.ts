@@ -10,6 +10,7 @@ import type {
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { rpID, rpName, origin } from "@/lib/webauthn";
+import { derivePasskeyName } from "@/lib/passkey-name";
 
 /**
  * Shared WebAuthn passkey-enrollment ceremony, used by three callers that all
@@ -68,7 +69,7 @@ export async function verifyAndStorePasskey(args: {
     return { ok: false };
   }
 
-  const { credential, credentialDeviceType, credentialBackedUp } =
+  const { credential, credentialDeviceType, credentialBackedUp, aaguid } =
     verification.registrationInfo;
 
   const data: Prisma.PasskeyCreateInput = {
@@ -79,6 +80,7 @@ export async function verifyAndStorePasskey(args: {
     deviceType: credentialDeviceType,
     backedUp: credentialBackedUp,
     transports: credential.transports ?? [],
+    name: derivePasskeyName({ aaguid, deviceType: credentialDeviceType }),
   };
 
   const passkeyId = args.replaceExisting
