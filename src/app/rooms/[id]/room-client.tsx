@@ -13,6 +13,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 interface Props {
   roomId: string;
@@ -36,6 +37,7 @@ export function RoomClient({
   membersCount,
 }: Props) {
   const router = useRouter();
+  const { confirm, dialog } = useConfirm();
   const [content, setContent] = useState(existingContent ?? "");
   const [isConfidential, setIsConfidential] = useState(existingIsConfidential);
   const [busy, setBusy] = useState<"submit" | "close" | null>(null);
@@ -99,12 +101,15 @@ export function RoomClient({
   }
 
   async function closeRoom() {
-    if (
-      !confirm(
-        "Close this room? Requests will be shuffled and assigned now — this can't be undone.",
-      )
-    )
-      return;
+    const ok = await confirm({
+      title: "Close room & assign?",
+      description:
+        "Requests will be shuffled and assigned now — this can't be undone.",
+      confirmText: "Close & assign",
+      cancelText: "Not yet",
+      destructive: true,
+    });
+    if (!ok) return;
     setBusy("close");
     setError(null);
     try {
@@ -233,6 +238,7 @@ export function RoomClient({
           </CardContent>
         </Card>
       )}
+      {dialog}
     </div>
   );
 }

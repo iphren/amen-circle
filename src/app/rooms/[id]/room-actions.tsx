@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useConfirm, type ConfirmOptions } from "@/components/ui/confirm-dialog";
 
 interface Props {
   roomId: string;
@@ -12,14 +13,12 @@ interface Props {
 
 export function RoomActions({ roomId, isOwner, isOpen }: Props) {
   const router = useRouter();
+  const { confirm, dialog } = useConfirm();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Leaving or cancelling only makes sense while the room is still open.
-  if (!isOpen) return null;
-
-  async function run(url: string, method: string, confirmMsg: string) {
-    if (!confirm(confirmMsg)) return;
+  async function run(url: string, method: string, prompt: ConfirmOptions) {
+    if (!(await confirm(prompt))) return;
     setBusy(true);
     setError(null);
     try {
@@ -35,6 +34,9 @@ export function RoomActions({ roomId, isOwner, isOpen }: Props) {
     }
   }
 
+  // Leaving or cancelling only makes sense while the room is still open.
+  if (!isOpen) return null;
+
   return (
     <div className="flex shrink-0 flex-col items-end gap-1">
       {isOwner ? (
@@ -43,11 +45,14 @@ export function RoomActions({ roomId, isOwner, isOpen }: Props) {
           size="sm"
           disabled={busy}
           onClick={() =>
-            run(
-              `/api/rooms/${roomId}`,
-              "DELETE",
-              "Cancel this room? It will be deleted for everyone, along with all requests. This can't be undone.",
-            )
+            run(`/api/rooms/${roomId}`, "DELETE", {
+              title: "Cancel this room?",
+              description:
+                "It will be deleted for everyone, along with all requests. This can't be undone.",
+              confirmText: "Cancel room",
+              cancelText: "Keep room",
+              destructive: true,
+            })
           }
         >
           {busy ? "Cancelling…" : "Cancel room"}
@@ -58,11 +63,13 @@ export function RoomActions({ roomId, isOwner, isOpen }: Props) {
           size="sm"
           disabled={busy}
           onClick={() =>
-            run(
-              `/api/rooms/${roomId}/leave`,
-              "POST",
-              "Leave this room? Your prayer request here will be removed.",
-            )
+            run(`/api/rooms/${roomId}/leave`, "POST", {
+              title: "Leave this room?",
+              description: "Your prayer request here will be removed.",
+              confirmText: "Leave room",
+              cancelText: "Stay",
+              destructive: true,
+            })
           }
         >
           {busy ? "Leaving…" : "Leave room"}
@@ -73,6 +80,7 @@ export function RoomActions({ roomId, isOwner, isOpen }: Props) {
           {error}
         </p>
       )}
+      {dialog}
     </div>
   );
 }

@@ -40,7 +40,7 @@ export function RevealableContent({ content, isConfidential }: Props) {
       </p>
 
       {revealed ? (
-        <span className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground transition group-hover:text-foreground">
+        <span className="pointer-events-none absolute top-0 right-0 inline-flex items-center gap-1 rounded-md bg-background/80 px-1.5 py-0.5 text-xs text-muted-foreground backdrop-blur-sm transition group-hover:text-foreground">
           <EyeOff className="size-3" /> Hide
         </span>
       ) : (

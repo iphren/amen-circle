@@ -54,7 +54,7 @@ export default async function DashboardPage() {
                 a code above.
               </p>
             ) : (
-              <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+              <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {memberships.map((m) => (
                   <li key={m.room.id}>
                     <Link href={`/rooms/${m.room.id}`} className="block">

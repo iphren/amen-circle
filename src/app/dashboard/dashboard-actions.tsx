@@ -77,20 +77,39 @@ export function DashboardActions() {
           to start your own.
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        <Label htmlFor="roomInput" className="sr-only">
-          Room code or name
-        </Label>
-        <Input
-          id="roomInput"
-          placeholder="Room code (e.g. ABC234) or a name…"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck={false}
-          name="amen-circle-room-input"
-        />
+      <CardContent className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Label htmlFor="roomInput" className="sr-only">
+            Room code or name
+          </Label>
+          <Input
+            id="roomInput"
+            className="sm:flex-1"
+            placeholder="Room code (e.g. ABC234) or a name…"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            name="amen-circle-room-input"
+          />
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
+            <Button
+              onClick={joinRoom}
+              disabled={busy !== null || !looksLikeCode}
+              variant={looksLikeCode ? "default" : "outline"}
+            >
+              {busy === "join" ? "Joining…" : "Join room"}
+            </Button>
+            <Button
+              onClick={createRoom}
+              disabled={busy !== null || !canCreate}
+              variant={canCreate ? "default" : "outline"}
+            >
+              {busy === "create" ? "Creating…" : "Create room"}
+            </Button>
+          </div>
+        </div>
         <p className="text-xs text-muted-foreground">
           {looksLikeCode
             ? "Looks like a room code — you'll join that room."
@@ -98,22 +117,6 @@ export function DashboardActions() {
               ? "Not a code — you'll create a new room with this name."
               : "Type a code to join, or a name to create."}
         </p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Button
-            onClick={joinRoom}
-            disabled={busy !== null || !looksLikeCode}
-            variant={looksLikeCode ? "default" : "outline"}
-          >
-            {busy === "join" ? "Joining…" : "Join room"}
-          </Button>
-          <Button
-            onClick={createRoom}
-            disabled={busy !== null || !canCreate}
-            variant={canCreate ? "default" : "outline"}
-          >
-            {busy === "create" ? "Creating…" : "Create room"}
-          </Button>
-        </div>
         {error && (
           <p className="text-sm text-destructive" role="alert">
             {error}
