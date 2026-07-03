@@ -199,14 +199,14 @@ export const PREVIEW_EMAIL_TEMPLATES: Record<
     label: "Account recovery",
     build: () =>
       recoveryEmailTemplate(
-        "https://amen.circle/auth/recover?token=sample-preview-token",
+        "https://amencircle.com/auth/recover?token=sample-preview-token",
       ),
   },
   "login-link": {
     label: "Email sign-in link",
     build: () =>
       loginLinkEmailTemplate(
-        "https://amen.circle/auth/email-login?token=sample-preview-token",
+        "https://amencircle.com/auth/email-login?token=sample-preview-token",
       ),
   },
 };
