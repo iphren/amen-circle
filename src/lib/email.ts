@@ -135,12 +135,9 @@ function renderEmail(args: {
   return { html, text };
 }
 
-export async function sendRecoveryEmail(args: {
-  to: string;
-  recoverUrl: string;
-}): Promise<void> {
-  const { to, recoverUrl } = args;
+type EmailTemplate = { subject: string; html: string; text: string };
 
+function recoveryEmailTemplate(recoverUrl: string): EmailTemplate {
   const { html, text } = renderEmail({
     bodyIntro: `You asked to recover access to your ${APP_NAME} account.`,
     ctaLabel: "Set up a new passkey",
@@ -148,48 +145,68 @@ export async function sendRecoveryEmail(args: {
     expiryNote:
       "This link expires in 20 minutes and can be used once. Setting up a new passkey removes any old passkeys on the account.",
   });
-
-  await getClient().send(
-    new SendEmailCommand({
-      Source: fromAddress(),
-      Destination: { ToAddresses: [to] },
-      ReplyToAddresses: [replyToAddress()],
-      Message: {
-        Subject: { Data: "Recover your Amen Circle account", Charset: "UTF-8" },
-        Body: {
-          Text: { Data: text, Charset: "UTF-8" },
-          Html: { Data: html, Charset: "UTF-8" },
-        },
-      },
-    }),
-  );
+  return { subject: "Recover your Amen Circle account", html, text };
 }
 
-export async function sendLoginLinkEmail(args: {
-  to: string;
-  loginUrl: string;
-}): Promise<void> {
-  const { to, loginUrl } = args;
-
+function loginLinkEmailTemplate(loginUrl: string): EmailTemplate {
   const { html, text } = renderEmail({
     bodyIntro: `You asked to sign in to ${APP_NAME} with an email link.`,
     ctaLabel: "Sign in",
     ctaUrl: loginUrl,
     expiryNote: "This link expires in 15 minutes and can be used once.",
   });
+  return { subject: "Your Amen Circle sign-in link", html, text };
+}
 
+async function deliver(to: string, template: EmailTemplate): Promise<void> {
   await getClient().send(
     new SendEmailCommand({
       Source: fromAddress(),
       Destination: { ToAddresses: [to] },
       ReplyToAddresses: [replyToAddress()],
       Message: {
-        Subject: { Data: "Your Amen Circle sign-in link", Charset: "UTF-8" },
+        Subject: { Data: template.subject, Charset: "UTF-8" },
         Body: {
-          Text: { Data: text, Charset: "UTF-8" },
-          Html: { Data: html, Charset: "UTF-8" },
+          Text: { Data: template.text, Charset: "UTF-8" },
+          Html: { Data: template.html, Charset: "UTF-8" },
         },
       },
     }),
   );
 }
+
+export async function sendRecoveryEmail(args: {
+  to: string;
+  recoverUrl: string;
+}): Promise<void> {
+  await deliver(args.to, recoveryEmailTemplate(args.recoverUrl));
+}
+
+export async function sendLoginLinkEmail(args: {
+  to: string;
+  loginUrl: string;
+}): Promise<void> {
+  await deliver(args.to, loginLinkEmailTemplate(args.loginUrl));
+}
+
+// Sample data for local template previews (see src/app/dev/emails). Building
+// these doesn't touch the SES client, so no AWS credentials are needed.
+export const PREVIEW_EMAIL_TEMPLATES: Record<
+  string,
+  { label: string; build: () => EmailTemplate }
+> = {
+  recovery: {
+    label: "Account recovery",
+    build: () =>
+      recoveryEmailTemplate(
+        "https://amen.circle/auth/recover?token=sample-preview-token",
+      ),
+  },
+  "login-link": {
+    label: "Email sign-in link",
+    build: () =>
+      loginLinkEmailTemplate(
+        "https://amen.circle/auth/email-login?token=sample-preview-token",
+      ),
+  },
+};
