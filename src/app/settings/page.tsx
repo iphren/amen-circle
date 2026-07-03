@@ -26,7 +26,7 @@ export default async function SettingsPage() {
   return (
     <>
       <SiteNav user={user} />
-      <main className="mx-auto max-w-3xl px-3 py-6 sm:px-4 sm:py-8">
+      <main className="max-w-5xl p-6 sm:p-8 lg:mx-auto">
         <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Manage the passkeys that can sign in to your account.

@@ -93,7 +93,7 @@ export default async function RoomPage({
   return (
     <>
       <SiteNav user={user} />
-      <main className="mx-auto max-w-5xl px-3 py-6 sm:px-4 sm:py-8">
+      <main className="max-w-5xl p-6 sm:p-8 lg:mx-auto">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex min-w-0 items-center gap-2">

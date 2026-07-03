@@ -44,7 +44,7 @@ export default async function MyPrayersPage() {
   return (
     <>
       <SiteNav user={user} />
-      <main className="mx-auto max-w-4xl px-3 py-6 sm:px-4 sm:py-8">
+      <main className="max-w-5xl p-6 sm:p-8 lg:mx-auto">
         <h1 className="text-2xl font-semibold tracking-tight">My prayers</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Requests entrusted to you across all your rooms.
