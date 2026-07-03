@@ -42,9 +42,13 @@ export default async function DashboardPage() {
   return (
     <>
       <SiteNav user={user} />
-      <main className="mx-auto max-w-5xl px-3 py-6 sm:px-4 sm:py-8">
+      <main className="mx-auto w-full max-w-7xl px-3 py-6 sm:px-4 sm:py-8">
         <div className="flex flex-col gap-8">
-          <DashboardActions />
+          {/* Constrain the action bar so it doesn't stretch; the rooms grid
+              below is free to fill the full page width. */}
+          <div className="max-w-2xl">
+            <DashboardActions />
+          </div>
 
           <section>
             <h2 className="text-lg font-semibold tracking-tight">Your rooms</h2>
@@ -54,7 +58,7 @@ export default async function DashboardPage() {
                 a code above.
               </p>
             ) : (
-              <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {memberships.map((m) => (
                   <li key={m.room.id}>
                     <Link href={`/rooms/${m.room.id}`} className="block">

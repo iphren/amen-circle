@@ -177,7 +177,7 @@ export function RoomClient({
               }
             />
           </div>
-          <div className="flex items-center justify-between rounded-md border px-3 py-2">
+          <div className="flex items-center justify-between gap-4 rounded-md border px-3 py-2">
             <div>
               <Label htmlFor="confidential" className="text-sm">
                 Confidential

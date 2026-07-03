@@ -5,6 +5,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Guards a post-auth redirect target against open redirects: only same-origin
+// absolute paths are allowed, so a crafted `?next=//evil.com` or
+// `?next=https://evil.com` falls back to a safe internal path.
+export function safeInternalPath(next?: string, fallback = "/dashboard") {
+  if (!next) return fallback;
+  if (!next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) {
+    return fallback;
+  }
+  return next;
+}
+
 // Locale-deterministic so server and client render the same string (no
 // hydration drift). Renders e.g. "3 July 2026".
 export function formatDate(date: Date | string) {

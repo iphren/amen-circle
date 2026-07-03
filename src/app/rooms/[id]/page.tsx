@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { RoomClient } from "@/app/rooms/[id]/room-client";
 import { RoomActions } from "@/app/rooms/[id]/room-actions";
+import { ShareButton } from "@/app/rooms/[id]/share-button";
 import { RoomStatusChip } from "@/components/room-status-chip";
 
 // Memoized per request so generateMetadata and the page component share a
@@ -106,7 +107,10 @@ export default async function RoomPage({
               member{members.length === 1 ? "" : "s"}
             </p>
           </div>
-          <RoomActions roomId={room.id} isOwner={isOwner} isOpen={isOpen} />
+          <div className="flex shrink-0 items-start gap-2">
+            {isOpen && <ShareButton code={room.code} name={room.name} />}
+            <RoomActions roomId={room.id} isOwner={isOwner} isOpen={isOpen} />
+          </div>
         </div>
 
         <div className="mt-8 grid gap-6 md:grid-cols-[1fr_280px]">

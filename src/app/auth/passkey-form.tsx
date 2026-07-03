@@ -20,7 +20,13 @@ import { Label } from "@/components/ui/label";
 
 type Mode = "login" | "register";
 
-export function PasskeyForm({ initialMode }: { initialMode: Mode }) {
+export function PasskeyForm({
+  initialMode,
+  next = "/dashboard",
+}: {
+  initialMode: Mode;
+  next?: string;
+}) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
@@ -52,7 +58,7 @@ export function PasskeyForm({ initialMode }: { initialMode: Mode }) {
         const j = await verifyRes.json().catch(() => ({}));
         throw new Error(j.error ?? "registration verification failed");
       }
-      router.push("/dashboard");
+      router.push(next);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "registration failed");
@@ -78,7 +84,7 @@ export function PasskeyForm({ initialMode }: { initialMode: Mode }) {
         const j = await verifyRes.json().catch(() => ({}));
         throw new Error(j.error ?? "sign-in failed");
       }
-      router.push("/dashboard");
+      router.push(next);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "sign-in failed");
