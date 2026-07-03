@@ -5,6 +5,8 @@ import { requireCurrentUser } from "@/lib/current-user";
 import { decrypt } from "@/lib/crypto";
 import { SiteNav } from "@/components/site-nav";
 import { RevealableContent } from "@/components/revealable-content";
+import { UserChip } from "@/components/user-chip";
+import { formatDate } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -72,9 +74,9 @@ export default async function MyPrayersPage() {
                         </span>
                       )}
                     </CardTitle>
-                    <CardDescription>
-                      From {it.authorName} ·{" "}
-                      {it.createdAt.toLocaleDateString()}
+                    <CardDescription className="flex flex-wrap items-center gap-1.5">
+                      From <UserChip name={it.authorName} /> ·{" "}
+                      {formatDate(it.createdAt)}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>

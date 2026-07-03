@@ -11,3 +11,11 @@ export function generateRoomCode(length = 6): string {
   }
   return out;
 }
+
+const CODE_RE = new RegExp(`^[${ALPHABET}]{6}$`);
+
+// A 6-char string drawn entirely from the room-code alphabet (case- and
+// whitespace-insensitive). Used to tell a join code apart from a room name.
+export function isRoomCode(value: string): boolean {
+  return CODE_RE.test(value.trim().toUpperCase());
+}

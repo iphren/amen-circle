@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { DashboardActions } from "@/app/dashboard/dashboard-actions";
 import { RoomStatusChip } from "@/components/room-status-chip";
+import { formatDate } from "@/lib/utils";
 
 export default async function DashboardPage() {
   const user = await requireCurrentUser();
@@ -71,7 +72,7 @@ export default async function DashboardPage() {
                           </CardDescription>
                         </CardHeader>
                         <CardContent className="text-xs text-muted-foreground">
-                          Created {m.room.createdAt.toLocaleDateString()}
+                          Created {formatDate(m.room.createdAt)}
                         </CardContent>
                       </Card>
                     </Link>

@@ -17,31 +17,40 @@ export function RevealableContent({ content, isConfidential }: Props) {
     );
   }
 
-  if (!revealed) {
-    return (
-      <button
-        type="button"
-        onClick={() => setRevealed(true)}
-        className="inline-flex items-center gap-2 rounded-md border border-dashed border-amber-400/50 bg-amber-50 px-3 py-2 text-sm text-amber-900 transition hover:bg-amber-100 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-200 dark:hover:bg-amber-950/60"
-        aria-label="Reveal confidential message"
-      >
-        <Eye className="size-4" />
-        Tap to reveal confidential message
-      </button>
-    );
-  }
-
+  // The content is always rendered so it occupies the same space in both
+  // states — toggling reveal/hide never shifts the surrounding layout. When
+  // hidden it's blurred and unselectable; the whole block is the toggle.
   return (
-    <div className="flex flex-col gap-2">
-      <p className="whitespace-pre-wrap text-sm leading-relaxed">{content}</p>
-      <button
-        type="button"
-        onClick={() => setRevealed(false)}
-        className="inline-flex w-fit items-center gap-1 text-xs text-muted-foreground transition hover:text-foreground"
-        aria-label="Hide confidential message"
+    <button
+      type="button"
+      onClick={() => setRevealed((v) => !v)}
+      aria-label={
+        revealed ? "Hide confidential message" : "Reveal confidential message"
+      }
+      aria-pressed={revealed}
+      className="group relative block w-full cursor-pointer text-left"
+    >
+      <p
+        aria-hidden={!revealed}
+        className={`whitespace-pre-wrap text-sm leading-relaxed transition ${
+          revealed ? "" : "select-none blur-sm"
+        }`}
       >
-        <EyeOff className="size-3" /> Hide
-      </button>
-    </div>
+        {content}
+      </p>
+
+      {revealed ? (
+        <span className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground transition group-hover:text-foreground">
+          <EyeOff className="size-3" /> Hide
+        </span>
+      ) : (
+        <span className="absolute inset-0 flex items-center justify-center">
+          <span className="inline-flex items-center gap-2 rounded-md border border-dashed border-amber-400/50 bg-amber-50 px-3 py-2 text-sm text-amber-900 transition group-hover:bg-amber-100 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-200 dark:group-hover:bg-amber-950/60">
+            <Eye className="size-4" />
+            Tap to reveal confidential message
+          </span>
+        </span>
+      )}
+    </button>
   );
 }

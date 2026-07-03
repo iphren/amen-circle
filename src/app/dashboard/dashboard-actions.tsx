@@ -12,13 +12,17 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { isRoomCode } from "@/lib/room-code";
 
 export function DashboardActions() {
   const router = useRouter();
-  const [roomName, setRoomName] = useState("");
-  const [joinCode, setJoinCode] = useState("");
+  const [value, setValue] = useState("");
   const [busy, setBusy] = useState<"create" | "join" | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const trimmed = value.trim();
+  const looksLikeCode = isRoomCode(value);
+  const canCreate = trimmed.length > 0 && !looksLikeCode;
 
   async function createRoom() {
     setBusy("create");
@@ -27,7 +31,7 @@ export function DashboardActions() {
       const res = await fetch("/api/rooms", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name: roomName }),
+        body: JSON.stringify({ name: value }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
@@ -49,7 +53,7 @@ export function DashboardActions() {
       const res = await fetch("/api/rooms/join", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code: joinCode }),
+        body: JSON.stringify({ code: trimmed.toUpperCase() }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
@@ -65,72 +69,57 @@ export function DashboardActions() {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Create a room</CardTitle>
-          <CardDescription>
-            Start a new prayer circle and invite friends with the code.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <Label htmlFor="roomName" className="sr-only">
-            Room name
-          </Label>
-          <Input
-            id="roomName"
-            placeholder="e.g. Wednesday small group"
-            value={roomName}
-            onChange={(e) => setRoomName(e.target.value)}
-          />
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Start or join a room</CardTitle>
+        <CardDescription>
+          Enter a 6-character code to join someone&apos;s circle, or type a name
+          to start your own.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        <Label htmlFor="roomInput" className="sr-only">
+          Room code or name
+        </Label>
+        <Input
+          id="roomInput"
+          placeholder="Room code (e.g. ABC234) or a name…"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
+          name="amen-circle-room-input"
+        />
+        <p className="text-xs text-muted-foreground">
+          {looksLikeCode
+            ? "Looks like a room code — you'll join that room."
+            : trimmed
+              ? "Not a code — you'll create a new room with this name."
+              : "Type a code to join, or a name to create."}
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
           <Button
-            onClick={createRoom}
-            disabled={busy !== null || !roomName.trim()}
-          >
-            {busy === "create" ? "Creating…" : "Create room"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Join a room</CardTitle>
-          <CardDescription>
-            Enter the 6-character code shared by the room owner.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <Label htmlFor="joinCode" className="sr-only">
-            Room code
-          </Label>
-          <Input
-            id="joinCode"
-            placeholder="ABCDEF"
-            className="font-mono uppercase tracking-widest"
-            maxLength={6}
-            value={joinCode}
-            onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="characters"
-            spellCheck={false}
-            name="amen-circle-join-code"
-          />
-          <Button
-            variant="outline"
             onClick={joinRoom}
-            disabled={busy !== null || joinCode.trim().length !== 6}
+            disabled={busy !== null || !looksLikeCode}
+            variant={looksLikeCode ? "default" : "outline"}
           >
             {busy === "join" ? "Joining…" : "Join room"}
           </Button>
-        </CardContent>
-      </Card>
-
-      {error && (
-        <p className="sm:col-span-2 text-sm text-destructive" role="alert">
-          {error}
-        </p>
-      )}
-    </div>
+          <Button
+            onClick={createRoom}
+            disabled={busy !== null || !canCreate}
+            variant={canCreate ? "default" : "outline"}
+          >
+            {busy === "create" ? "Creating…" : "Create room"}
+          </Button>
+        </div>
+        {error && (
+          <p className="text-sm text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
 }

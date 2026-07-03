@@ -54,3 +54,29 @@ export async function GET(
     members,
   });
 }
+
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const auth = await requireUserId();
+  if (auth instanceof NextResponse) return auth;
+
+  const { id } = await params;
+
+  const room = await prisma.prayerRoom.findUnique({ where: { id } });
+  if (!room) {
+    return NextResponse.json({ error: "not found" }, { status: 404 });
+  }
+  if (room.ownerId !== auth.userId) {
+    return NextResponse.json({ error: "owner only" }, { status: 403 });
+  }
+  if (room.status !== "OPEN") {
+    return NextResponse.json({ error: "room is closed" }, { status: 400 });
+  }
+
+  // Cascades in the schema remove memberships and requests along with the room.
+  await prisma.prayerRoom.delete({ where: { id } });
+
+  return NextResponse.json({ ok: true });
+}

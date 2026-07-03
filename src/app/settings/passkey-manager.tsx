@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { formatDate } from "@/lib/utils";
 
 interface Passkey {
   id: string;
@@ -105,7 +106,7 @@ export function PasskeyManager({
                   )}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Added {new Date(pk.createdAt).toLocaleDateString()}
+                  Added {formatDate(pk.createdAt)}
                 </p>
               </div>
               <Button
