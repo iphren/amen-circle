@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { AlertDialog } from "@base-ui/react/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export interface ConfirmOptions {
   title: string;
@@ -11,6 +12,8 @@ export interface ConfirmOptions {
   cancelText?: string;
   /** Styles the confirm button as destructive (for irreversible actions). */
   destructive?: boolean;
+  /** Extra classes for the confirm button, to override its color per call. */
+  confirmClassName?: string;
 }
 
 /**
@@ -67,6 +70,7 @@ export function useConfirm() {
             <Button
               variant={opts?.destructive ? "destructive" : "default"}
               size="sm"
+              className={cn(opts?.confirmClassName)}
               onClick={() => settle(true)}
             >
               {opts?.confirmText ?? "Confirm"}

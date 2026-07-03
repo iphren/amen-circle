@@ -15,6 +15,12 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 
+// Purple styling for the "close & assign" action, so it reads as distinct from
+// the red destructive "cancel room" button. Shared by the card button and the
+// confirmation dialog's confirm button so the two never drift.
+const closeButtonClass =
+  "bg-violet-500/10 text-violet-600 hover:bg-violet-500/20 focus-visible:border-violet-500/40 focus-visible:ring-violet-500/20 dark:bg-violet-500/20 dark:text-violet-400 dark:hover:bg-violet-500/30 dark:focus-visible:ring-violet-500/40";
+
 interface Props {
   roomId: string;
   isOwner: boolean;
@@ -107,7 +113,7 @@ export function RoomClient({
         "Requests will be shuffled and assigned now — this can't be undone.",
       confirmText: "Close & assign",
       cancelText: "Not yet",
-      destructive: true,
+      confirmClassName: closeButtonClass,
     });
     if (!ok) return;
     setBusy("close");
@@ -219,9 +225,9 @@ export function RoomClient({
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
             <Button
-              variant="destructive"
               onClick={closeRoom}
               disabled={!canClose}
+              className={closeButtonClass}
             >
               {busy === "close" ? "Closing…" : "Close room & assign"}
             </Button>
