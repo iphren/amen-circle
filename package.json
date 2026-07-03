@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "db:push": "dotenv -e .env.local -- prisma db push",
     "db:generate": "dotenv -e .env.local -- prisma generate",
-    "db:studio": "dotenv -e .env.local -- prisma studio"
+    "db:studio": "dotenv -e .env.local -- prisma studio",
+    "recovery-link": "dotenv -e .env.local -- node scripts/mint-recovery-link.js"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.1062.0",
