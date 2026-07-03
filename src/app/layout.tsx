@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://amen.ihs.technology"),
+  metadataBase: new URL("https://amencircle.com"),
   title: {
     default: "Amen Circle",
     template: "%s · Amen Circle",

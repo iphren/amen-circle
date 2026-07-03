@@ -88,8 +88,52 @@ resource "aws_iam_access_key" "ses_sender" {
 }
 
 data "aws_route53_zone" "root" {
+  name         = "${var.domain_name}."
+  private_zone = false
+}
+
+# Zone of the legacy domain, still needed for the redirect CNAME.
+data "aws_route53_zone" "legacy" {
   name         = "ihs.technology."
   private_zone = false
+}
+
+# TLS cert for the new domain (apex + wildcard, so www is covered). Amplify
+# only accepts custom certificates from us-east-1, hence the aliased provider.
+resource "aws_acm_certificate" "main" {
+  provider                  = aws.us_east_1
+  domain_name               = var.domain_name
+  subject_alternative_names = ["*.${var.domain_name}"]
+  validation_method         = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = local.common_tags
+}
+
+resource "aws_route53_record" "acm_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.main.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      type   = dvo.resource_record_type
+      record = dvo.resource_record_value
+    }
+  }
+
+  zone_id         = data.aws_route53_zone.root.zone_id
+  name            = each.value.name
+  type            = each.value.type
+  ttl             = 300
+  records         = [each.value.record]
+  allow_overwrite = true
+}
+
+resource "aws_acm_certificate_validation" "main" {
+  provider                = aws.us_east_1
+  certificate_arn         = aws_acm_certificate.main.arn
+  validation_record_fqdns = [for r in aws_route53_record.acm_validation : r.fqdn]
 }
 
 # SES domain identity (in the app's region, eu-west-2) for recovery emails.
@@ -163,6 +207,19 @@ resource "aws_amplify_app" "main" {
   iam_service_role_arn        = aws_iam_role.amplify_service.arn
   enable_auto_branch_creation = false
 
+  # Host-based 301s: www and the legacy domain both land on the apex.
+  custom_rule {
+    source = "https://www.${var.domain_name}"
+    target = "https://${var.domain_name}"
+    status = "301"
+  }
+
+  custom_rule {
+    source = "https://${var.legacy_domain_name}"
+    target = "https://${var.domain_name}"
+    status = "301"
+  }
+
   tags = local.common_tags
 }
 
@@ -198,7 +255,29 @@ resource "aws_amplify_domain_association" "main" {
 
   certificate_settings {
     type                   = "CUSTOM"
-    custom_certificate_arn = var.certificate_arn
+    custom_certificate_arn = aws_acm_certificate_validation.main.certificate_arn
+  }
+
+  sub_domain {
+    branch_name = aws_amplify_branch.main.branch_name
+    prefix      = ""
+  }
+
+  sub_domain {
+    branch_name = aws_amplify_branch.main.branch_name
+    prefix      = "www"
+  }
+}
+
+# Keeps the old hostname attached to the app (with its existing cert) so the
+# 301 custom rule above can answer it over valid HTTPS.
+resource "aws_amplify_domain_association" "legacy" {
+  app_id      = aws_amplify_app.main.id
+  domain_name = var.legacy_domain_name
+
+  certificate_settings {
+    type                   = "CUSTOM"
+    custom_certificate_arn = var.legacy_certificate_arn
   }
 
   sub_domain {
@@ -207,9 +286,38 @@ resource "aws_amplify_domain_association" "main" {
   }
 }
 
+locals {
+  # Amplify reports each sub_domain's DNS target as "<prefix> CNAME <host>";
+  # pull out the CloudFront hostname for the apex entry.
+  apex_dns_record = one([for s in aws_amplify_domain_association.main.sub_domain : s.dns_record if s.prefix == ""])
+  apex_cloudfront = element(split(" ", local.apex_dns_record), length(split(" ", local.apex_dns_record)) - 1)
+}
+
+# The apex can't be a CNAME, so alias straight to the app's CloudFront
+# distribution. Z2FDTNDATAQYW2 is CloudFront's fixed hosted zone ID.
 resource "aws_route53_record" "main" {
   zone_id = data.aws_route53_zone.root.zone_id
   name    = var.domain_name
+  type    = "A"
+
+  alias {
+    name                   = local.apex_cloudfront
+    zone_id                = "Z2FDTNDATAQYW2"
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "www" {
+  zone_id = data.aws_route53_zone.root.zone_id
+  name    = "www.${var.domain_name}"
+  type    = "CNAME"
+  ttl     = 300
+  records = ["${var.github_branch}.${aws_amplify_app.main.id}.amplifyapp.com"]
+}
+
+resource "aws_route53_record" "legacy" {
+  zone_id = data.aws_route53_zone.legacy.zone_id
+  name    = var.legacy_domain_name
   type    = "CNAME"
   ttl     = 300
   records = ["${var.github_branch}.${aws_amplify_app.main.id}.amplifyapp.com"]

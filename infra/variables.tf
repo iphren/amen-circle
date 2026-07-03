@@ -5,6 +5,13 @@ variable "app_name" {
 
 variable "domain_name" {
   type    = string
+  default = "amencircle.com"
+}
+
+# The previous domain, kept attached to the Amplify app only so it can answer
+# with a 301 redirect to the new domain.
+variable "legacy_domain_name" {
+  type    = string
   default = "amen.ihs.technology"
 }
 
@@ -19,19 +26,20 @@ variable "github_branch" {
   default = "main"
 }
 
-# ACM cert ARN that covers var.domain_name. Reuse the existing
-# *.ihs.technology cert from the portfolio project if it has SANs that
-# include amen.ihs.technology, otherwise request a new one in us-east-1.
-variable "certificate_arn" {
-  type        = string
-  description = "ACM certificate ARN in us-east-1 covering the domain"
+# ACM cert ARN in us-east-1 covering var.legacy_domain_name (the existing
+# *.ihs.technology cert from the portfolio project). Only used to keep the
+# legacy redirect domain on HTTPS; the cert for var.domain_name is created by
+# Terraform (see aws_acm_certificate.main).
+variable "legacy_certificate_arn" {
+  type    = string
+  default = "arn:aws:acm:us-east-1:387479857085:certificate/322842ee-8a43-4ff9-900a-f72727639f9d"
 }
 
 # Full RFC 5322 "From" header used for account-recovery emails (may include a
 # display name). The address part must belong to the verified SES identity.
 variable "email_from" {
   type    = string
-  default = "Amen Circle <no-reply@amen.ihs.technology>"
+  default = "Amen Circle <no-reply@amencircle.com>"
 }
 
 # Bare sending address, used to scope the SES IAM policy via the
@@ -39,5 +47,5 @@ variable "email_from" {
 # display name). Keep the address part in sync with var.email_from.
 variable "email_from_address" {
   type    = string
-  default = "no-reply@amen.ihs.technology"
+  default = "no-reply@amencircle.com"
 }

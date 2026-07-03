@@ -4,7 +4,7 @@ A small prayer-community web app. People form a circle, each member submits a
 prayer request, the owner closes the room, and each request gets shuffled and
 assigned to someone other than its author to pray for.
 
-Live at **https://amen.ihs.technology**.
+Live at **https://amencircle.com**.
 
 ## Stack
 
