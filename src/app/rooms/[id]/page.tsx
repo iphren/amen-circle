@@ -108,7 +108,7 @@ export default async function RoomPage({
             </p>
           </div>
           <div className="flex shrink-0 items-start gap-2">
-            {isOpen && <ShareButton code={room.code} name={room.name} />}
+            {isOpen && <ShareButton code={room.code} />}
             <RoomActions roomId={room.id} isOwner={isOwner} isOpen={isOpen} />
           </div>
         </div>
