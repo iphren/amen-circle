@@ -281,6 +281,8 @@ export const zhCN: DeepPartial<Dictionary> = {
     languageLabel: "显示语言",
     languageSaving: "正在保存…",
     couldNotSaveLanguage: "无法保存你的语言",
+    sessionTitle: "登录状态",
+    sessionDescription: "在这台设备上退出同心圆。",
     passkeysTitle: "通行密钥",
     passkeysDescription:
       "在另一台设备上添加备用通行密钥，避免丢失当前设备后无法登录。",

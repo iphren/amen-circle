@@ -5,6 +5,7 @@ import { SiteNav } from "@/components/site-nav";
 import { PasskeyManager } from "@/app/settings/passkey-manager";
 import { DeleteAccount } from "@/app/settings/delete-account";
 import { LanguageCard } from "@/app/settings/language-card";
+import { LogoutButton } from "@/components/logout-button";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { resolveLocale } from "@/lib/i18n/config";
@@ -62,6 +63,18 @@ export default async function SettingsPage() {
           />
 
           <LanguageCard current={currentLanguage} />
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">
+                {t.settings.sessionTitle}
+              </CardTitle>
+              <CardDescription>{t.settings.sessionDescription}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <LogoutButton />
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { Menu, X } from "lucide-react";
-import { LogoutButton } from "@/components/logout-button";
 import { NavLinks } from "@/components/nav-links";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -47,10 +46,6 @@ export function MobileMenu({ displayName }: { displayName: string }) {
           </div>
 
           <NavLinks orientation="vertical" onNavigate={() => setOpen(false)} />
-
-          <div className="mt-auto">
-            <LogoutButton />
-          </div>
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>

@@ -296,6 +296,8 @@ export const enGB = {
     languageLabel: "Display language",
     languageSaving: "Saving…",
     couldNotSaveLanguage: "could not save your language",
+    sessionTitle: "Session",
+    sessionDescription: "Sign out of Amen Circle on this device.",
     passkeysTitle: "Passkeys",
     passkeysDescription:
       "Add a backup passkey on another device so you don't get locked out if you lose this one.",

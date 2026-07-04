@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { LogoutButton } from "@/components/logout-button";
 import { NavLinks } from "@/components/nav-links";
 import { MobileMenu } from "@/components/mobile-menu";
 import type { CurrentUser } from "@/lib/current-user";
@@ -20,12 +19,11 @@ export async function SiteNav({ user }: { user: CurrentUser }) {
           </div>
         </div>
 
-        {/* Desktop: name + sign out inline */}
+        {/* Desktop: name inline; sign out lives in Settings. */}
         <div className="hidden items-center gap-3 text-sm md:flex">
           <span className="max-w-[12rem] truncate text-muted-foreground">
             {user.displayName}
           </span>
-          <LogoutButton />
         </div>
 
         {/* Mobile: collapse everything into a drawer */}
