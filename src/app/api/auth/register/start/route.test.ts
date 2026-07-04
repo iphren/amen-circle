@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    user: { findUnique: vi.fn(), create: vi.fn() },
+    user: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
   },
 }));
 vi.mock("@/lib/session", () => ({ getSession: vi.fn() }));
@@ -22,6 +22,9 @@ function jsonRequest(body: unknown) {
   });
 }
 
+// Valid consent flags, spread into request bodies that should pass the gate.
+const consented = { acceptTerms: true, consentReligiousData: true };
+
 function fakeSession() {
   return { save: vi.fn().mockResolvedValue(undefined) } as Record<
     string,
@@ -31,6 +34,7 @@ function fakeSession() {
 
 const findUnique = vi.mocked(prisma.user.findUnique);
 const create = vi.mocked(prisma.user.create);
+const update = vi.mocked(prisma.user.update);
 const enrollOpts = vi.mocked(buildEnrollmentOptions);
 const session = vi.mocked(getSession);
 
@@ -50,7 +54,11 @@ describe("register/start — account-takeover guard", () => {
     } as never);
 
     const res = await POST(
-      jsonRequest({ email: "victim@example.com", displayName: "Mallory" }),
+      jsonRequest({
+        email: "victim@example.com",
+        displayName: "Mallory",
+        ...consented,
+      }),
     );
 
     expect(res.status).toBe(409);
@@ -70,14 +78,25 @@ describe("register/start — account-takeover guard", () => {
     session.mockResolvedValue(s as never);
 
     const res = await POST(
-      jsonRequest({ email: "New@Example.com", displayName: " Newbie " }),
+      jsonRequest({
+        email: "New@Example.com",
+        displayName: " Newbie ",
+        ...consented,
+      }),
     );
 
     expect(res.status).toBe(200);
-    // Email is normalised to lowercase, displayName trimmed.
+    // Email is normalised to lowercase, displayName trimmed, and all three
+    // consent timestamps recorded.
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: { email: "new@example.com", displayName: "Newbie" },
+        data: expect.objectContaining({
+          email: "new@example.com",
+          displayName: "Newbie",
+          termsAcceptedAt: expect.any(Date),
+          religiousDataConsentAt: expect.any(Date),
+          ageConfirmedAt: expect.any(Date),
+        }),
       }),
     );
     expect(enrollOpts).toHaveBeenCalledWith("newuser");
@@ -91,23 +110,64 @@ describe("register/start — account-takeover guard", () => {
       id: "halfsignup",
       passkeys: [],
     } as never);
+    update.mockResolvedValue({
+      id: "halfsignup",
+      passkeys: [],
+    } as never);
     const s = fakeSession();
     session.mockResolvedValue(s as never);
 
     const res = await POST(
-      jsonRequest({ email: "half@example.com", displayName: "Half" }),
+      jsonRequest({
+        email: "half@example.com",
+        displayName: "Half",
+        ...consented,
+      }),
     );
 
     expect(res.status).toBe(200);
     expect(create).not.toHaveBeenCalled();
+    // Resume refreshes the display name and re-records consent.
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "halfsignup" },
+        data: expect.objectContaining({
+          displayName: "Half",
+          termsAcceptedAt: expect.any(Date),
+          religiousDataConsentAt: expect.any(Date),
+          ageConfirmedAt: expect.any(Date),
+        }),
+      }),
+    );
     expect(enrollOpts).toHaveBeenCalledWith("halfsignup");
     expect(s.pendingUserId).toBe("halfsignup");
   });
 
   it("returns 400 when email or displayName is missing", async () => {
-    const res = await POST(jsonRequest({ email: "only@example.com" }));
+    const res = await POST(
+      jsonRequest({ email: "only@example.com", ...consented }),
+    );
     expect(res.status).toBe(400);
     expect(findUnique).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when terms or religious-data consent is missing", async () => {
+    const noConsent = await POST(
+      jsonRequest({ email: "a@example.com", displayName: "A" }),
+    );
+    expect(noConsent.status).toBe(400);
+
+    const termsOnly = await POST(
+      jsonRequest({
+        email: "a@example.com",
+        displayName: "A",
+        acceptTerms: true,
+      }),
+    );
+    expect(termsOnly.status).toBe(400);
+
+    expect(findUnique).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
   });
 
   it("handles the concurrent-signup race: P2002 then a real account wins (409)", async () => {
@@ -124,7 +184,11 @@ describe("register/start — account-takeover guard", () => {
     );
 
     const res = await POST(
-      jsonRequest({ email: "race@example.com", displayName: "Racer" }),
+      jsonRequest({
+        email: "race@example.com",
+        displayName: "Racer",
+        ...consented,
+      }),
     );
 
     expect(res.status).toBe(409);

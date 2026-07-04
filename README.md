@@ -11,7 +11,7 @@ Live at **https://amencircle.com**.
 - Next.js 16 (App Router, TypeScript strict, Tailwind v4)
 - Prisma 6 + Neon (PostgreSQL, pooled)
 - Passkey-only auth via `@simplewebauthn/server` and iron-session
-- AES-256-GCM encryption for confidential requests
+- AES-256-GCM encryption at rest for all prayer-request content
 - Deployed on AWS Amplify (`WEB_COMPUTE`), Terraform-managed (`infra/`)
 
 ## Local development
@@ -54,3 +54,24 @@ All AWS resources (Amplify app, IAM role, Route 53 record, domain association)
 live in `infra/` as Terraform. Secrets are read from SSM Parameter Store at
 build time and snapshotted into `.next/server/runtime-env.json` for the SSR
 Lambda — see `src/instrumentation.ts` for the read side.
+
+One manual setting: the Amplify SSR CloudWatch log group is auto-created
+outside Terraform — set its retention to **30 days** in the CloudWatch
+console. The privacy policy's claim about access-log retention depends on it.
+
+## Legal pages
+
+`/privacy` and `/terms` are drafted from an audit of this codebase's actual
+data flows, with operator identity centralised in `src/lib/legal.ts`
+(placeholders to fill in). They are **not legal advice** — have a solicitor
+review them before relying on them.
+
+## Acknowledgements
+
+- Authenticator names are derived from the community-maintained
+  [passkey-authenticator-aaguids](https://github.com/passkeydeveloper/passkey-authenticator-aaguids)
+  dataset (MIT) — see `src/lib/passkey-name.ts`.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

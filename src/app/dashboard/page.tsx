@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireCurrentUser } from "@/lib/current-user";
 import { SiteNav } from "@/components/site-nav";
+import { ConsentGate } from "@/components/consent-gate";
 
 export const metadata: Metadata = {
   title: "Rooms",
@@ -20,6 +21,18 @@ import { formatDate } from "@/lib/utils";
 
 export default async function DashboardPage() {
   const user = await requireCurrentUser();
+
+  // Accounts predating the consent flow must accept before using the app.
+  if (user.religiousDataConsentAt === null) {
+    return (
+      <>
+        <SiteNav user={user} />
+        <main className="max-w-5xl p-6 sm:p-8 lg:mx-auto">
+          <ConsentGate />
+        </main>
+      </>
+    );
+  }
 
   const memberships = await prisma.membership.findMany({
     where: { userId: user.id },

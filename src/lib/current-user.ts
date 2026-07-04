@@ -7,6 +7,9 @@ export interface CurrentUser {
   id: string;
   email: string;
   displayName: string;
+  // Null for accounts created before the consent flow; the dashboard blocks
+  // such users behind ConsentGate until they accept.
+  religiousDataConsentAt: Date | null;
 }
 
 // Memoized per request so multiple resolvers in one render (e.g. a page and its
@@ -18,7 +21,12 @@ export const getCurrentUser = cache(
     if (!session.userId) return null;
     return prisma.user.findUnique({
       where: { id: session.userId },
-      select: { id: true, email: true, displayName: true },
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+        religiousDataConsentAt: true,
+      },
     });
   },
 );

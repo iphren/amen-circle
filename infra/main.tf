@@ -240,6 +240,10 @@ resource "aws_amplify_branch" "main" {
     WEBAUTHN_RPID       = var.domain_name
     WEBAUTHN_ORIGIN     = "https://${var.domain_name}"
     EMAIL_FROM          = var.email_from
+    # Postal address + reply-to for the transactional email footer; also
+    # snapshotted into runtime-env.json by amplify.yml for the SSR Lambda.
+    EMAIL_POSTAL_ADDRESS = var.email_postal_address
+    EMAIL_REPLY_TO       = var.email_reply_to
     # SSR runtime has no role credentials, so the SES client uses these explicit
     # keys (non-reserved names; AWS_* env vars are reserved by Lambda).
     SES_REGION              = local.region

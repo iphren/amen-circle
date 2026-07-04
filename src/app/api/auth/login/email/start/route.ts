@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
   LOGIN_LINK_TTL_MS,
+  TOKEN_EMAIL_WINDOW_MS,
   generateRecoveryToken,
+  isTokenEmailRateLimited,
 } from "@/lib/recovery-token";
 import { sendLoginLinkEmail } from "@/lib/email";
 import { origin } from "@/lib/webauthn";
@@ -28,6 +30,20 @@ export async function POST(req: Request) {
     select: { id: true, email: true },
   });
   if (!user) return genericOk;
+
+  // Silent rate limit so this endpoint can't be used to bomb someone's inbox.
+  // Responding with genericOk keeps limited requests indistinguishable from
+  // sends (no enumeration oracle).
+  const recentTokens = await prisma.loginToken.findMany({
+    where: {
+      userId: user.id,
+      createdAt: { gte: new Date(Date.now() - TOKEN_EMAIL_WINDOW_MS) },
+    },
+    select: { createdAt: true },
+  });
+  if (isTokenEmailRateLimited(recentTokens.map((t) => t.createdAt))) {
+    return genericOk;
+  }
 
   // Invalidate any outstanding sign-in tokens for this user, then mint a fresh
   // single-use one.

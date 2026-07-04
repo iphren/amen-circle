@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/auth-guard";
-import { decrypt } from "@/lib/crypto";
+import { decryptContent } from "@/lib/crypto";
 
 export async function GET() {
   const auth = await requireUserId();
@@ -21,7 +21,7 @@ export async function GET() {
     roomId: r.roomId,
     roomName: r.room.name,
     isConfidential: r.isConfidential,
-    content: r.isConfidential ? decrypt(r.content) : r.content,
+    content: decryptContent(r.content, r.isConfidential),
     author: r.author,
     createdAt: r.createdAt,
     prayedAt: r.prayedAt,

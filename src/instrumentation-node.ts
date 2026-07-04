@@ -52,4 +52,22 @@ export async function registerNode() {
   } catch {
     // Warm-up failed after retries — fall through; lazy connect on first query.
   }
+
+  // Best-effort purge of long-expired login/recovery tokens (backs the privacy
+  // policy's "expired links are purged" retention claim). Runs on every Lambda
+  // cold start — plenty at this scale; both models index expiresAt. The 24h
+  // grace period keeps recent rows countable by the token-email rate limiter.
+  // Must never crash server init.
+  try {
+    const { prisma } = await import("@/lib/prisma");
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    await prisma.loginToken.deleteMany({
+      where: { expiresAt: { lt: cutoff } },
+    });
+    await prisma.recoveryToken.deleteMany({
+      where: { expiresAt: { lt: cutoff } },
+    });
+  } catch {
+    // Purge is housekeeping only — retry on the next cold start.
+  }
 }

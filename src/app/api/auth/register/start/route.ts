@@ -7,6 +7,8 @@ import { buildEnrollmentOptions } from "@/lib/passkey-enroll";
 interface RegisterStartBody {
   email?: string;
   displayName?: string;
+  acceptTerms?: boolean;
+  consentReligiousData?: boolean;
 }
 
 export async function POST(req: Request) {
@@ -20,6 +22,27 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
+
+  // Enforced server-side, not just in the UI: registration is the point where
+  // we record the demonstrable consent UK GDPR requires. acceptTerms covers
+  // terms + 18+ age confirmation; consentReligiousData is the unbundled
+  // Art. 9(2)(a) explicit consent for prayer content.
+  if (body.acceptTerms !== true || body.consentReligiousData !== true) {
+    return NextResponse.json(
+      {
+        error:
+          "You must accept the terms and consent to the processing of your prayer requests to register.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const consentNow = new Date();
+  const consentData = {
+    termsAcceptedAt: consentNow,
+    religiousDataConsentAt: consentNow,
+    ageConfirmedAt: consentNow,
+  };
 
   // Find-or-create, but key the "already taken" decision on passkey count, not
   // mere user existence. A user row with zero passkeys is an interrupted signup
@@ -39,10 +62,18 @@ export async function POST(req: Request) {
     );
   }
 
-  if (!user) {
+  if (user) {
+    // Resumed interrupted signup: refresh the display name and re-record
+    // consent as of this attempt.
+    user = await prisma.user.update({
+      where: { id: user.id },
+      data: { displayName, ...consentData },
+      include: { passkeys: true },
+    });
+  } else {
     try {
       user = await prisma.user.create({
-        data: { email, displayName },
+        data: { email, displayName, ...consentData },
         include: { passkeys: true },
       });
     } catch (e) {
@@ -63,6 +94,13 @@ export async function POST(req: Request) {
             },
             { status: 409 },
           );
+        }
+        if (user) {
+          user = await prisma.user.update({
+            where: { id: user.id },
+            data: { displayName, ...consentData },
+            include: { passkeys: true },
+          });
         }
       } else {
         throw e;

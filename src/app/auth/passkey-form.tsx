@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ConsentCheckboxes } from "@/components/consent-checkboxes";
 
 type Mode = "login" | "register";
 
@@ -31,6 +32,8 @@ export function PasskeyForm({
   const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [consentReligiousData, setConsentReligiousData] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +44,12 @@ export function PasskeyForm({
       const optsRes = await fetch("/api/auth/register/start", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, displayName }),
+        body: JSON.stringify({
+          email,
+          displayName,
+          acceptTerms,
+          consentReligiousData,
+        }),
       });
       if (!optsRes.ok) {
         const j = await optsRes.json().catch(() => ({}));
@@ -93,7 +101,11 @@ export function PasskeyForm({
     }
   }
 
-  const canRegister = email.trim().length > 0 && displayName.trim().length > 0;
+  const canRegister =
+    email.trim().length > 0 &&
+    displayName.trim().length > 0 &&
+    acceptTerms &&
+    consentReligiousData;
 
   return (
     <Card className="w-full max-w-md">
@@ -130,6 +142,13 @@ export function PasskeyForm({
                 placeholder="How others will see you"
               />
             </div>
+            <ConsentCheckboxes
+              idPrefix="register"
+              acceptTerms={acceptTerms}
+              onAcceptTermsChange={setAcceptTerms}
+              consentReligiousData={consentReligiousData}
+              onConsentReligiousDataChange={setConsentReligiousData}
+            />
             <Button
               onClick={handleRegister}
               disabled={busy || !canRegister}

@@ -32,3 +32,25 @@ export function decrypt(payload: string): string {
   decipher.setAuthTag(tag);
   return Buffer.concat([decipher.update(enc), decipher.final()]).toString("utf8");
 }
+
+// Versioned wrappers for prayer-request content. All content is now encrypted
+// at rest with a "v1:" prefix; the prefix exists because legacy rows can't be
+// told apart otherwise — pre-versioning ciphertext (confidential rows) and
+// plaintext (non-confidential rows) are both plausible base64. The legacy
+// fallback below keeps old rows readable until (and as a safety net after)
+// scripts/encrypt-plaintext-requests.js migrates them.
+const CONTENT_VERSION_PREFIX = "v1:";
+
+export function encryptContent(plaintext: string): string {
+  return CONTENT_VERSION_PREFIX + encrypt(plaintext);
+}
+
+export function decryptContent(
+  stored: string,
+  isConfidential: boolean,
+): string {
+  if (stored.startsWith(CONTENT_VERSION_PREFIX)) {
+    return decrypt(stored.slice(CONTENT_VERSION_PREFIX.length));
+  }
+  return isConfidential ? decrypt(stored) : stored;
+}

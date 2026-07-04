@@ -2,6 +2,7 @@
   "name": "amen-circle",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,7 +13,8 @@
     "db:push": "dotenv -e .env.local -- prisma db push",
     "db:generate": "dotenv -e .env.local -- prisma generate",
     "db:studio": "dotenv -e .env.local -- prisma studio",
-    "recovery-link": "dotenv -e .env.local -- node scripts/mint-recovery-link.js"
+    "recovery-link": "dotenv -e .env.local -- node scripts/mint-recovery-link.js",
+    "encrypt-requests": "dotenv -e .env.local -- node scripts/encrypt-plaintext-requests.js"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.1062.0",

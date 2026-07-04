@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireCurrentUser } from "@/lib/current-user";
-import { decrypt } from "@/lib/crypto";
+import { decryptContent } from "@/lib/crypto";
 import { SiteNav } from "@/components/site-nav";
 import { RevealableContent } from "@/components/revealable-content";
 import { UserChip } from "@/components/user-chip";
@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { OPERATOR } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "My prayers",
@@ -36,7 +37,7 @@ export default async function MyPrayersPage() {
     roomId: r.roomId,
     roomName: r.room.name,
     isConfidential: r.isConfidential,
-    content: r.isConfidential ? decrypt(r.content) : r.content,
+    content: decryptContent(r.content, r.isConfidential),
     authorName: r.author.displayName,
     createdAt: r.createdAt,
   }));
@@ -79,11 +80,21 @@ export default async function MyPrayersPage() {
                       {formatDate(it.createdAt)}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="flex flex-col gap-3">
                     <RevealableContent
                       content={it.content}
                       isConfidential={it.isConfidential}
                     />
+                    {/* The only place users see others' content, so the
+                        report route lives here (see terms §6). */}
+                    <a
+                      className="self-end text-xs text-muted-foreground hover:underline"
+                      href={`mailto:${OPERATOR.contactEmail}?subject=${encodeURIComponent(
+                        `Report content — request ${it.id}`,
+                      )}`}
+                    >
+                      Report
+                    </a>
                   </CardContent>
                 </Card>
               </li>

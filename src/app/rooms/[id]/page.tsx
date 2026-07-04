@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireCurrentUser } from "@/lib/current-user";
+import { decryptContent } from "@/lib/crypto";
 import { SiteNav } from "@/components/site-nav";
 import {
   Card,
@@ -15,6 +16,7 @@ import { RoomClient } from "@/app/rooms/[id]/room-client";
 import { RoomActions } from "@/app/rooms/[id]/room-actions";
 import { ShareButton } from "@/app/rooms/[id]/share-button";
 import { RoomStatusChip } from "@/components/room-status-chip";
+import { RemoveMemberButton } from "@/app/rooms/[id]/remove-member-button";
 
 // Memoized per request so generateMetadata and the page component share a
 // single query instead of each fetching the same room. Selects the superset
@@ -75,11 +77,13 @@ export default async function RoomPage({
     select: { content: true, isConfidential: true },
   });
 
-  // Confidential requests stay encrypted in this view — they only get decrypted
-  // for the assignee in /my-prayers. Show the user their own raw content if
-  // they wrote it as non-confidential, otherwise hide it.
+  // Confidential requests are never shown in this view — they only surface
+  // for the assignee in /my-prayers. Show the user their own content (all
+  // content is stored encrypted) if they wrote it as non-confidential.
   const myPlaintext =
-    myExisting && !myExisting.isConfidential ? myExisting.content : null;
+    myExisting && !myExisting.isConfidential
+      ? decryptContent(myExisting.content, myExisting.isConfidential)
+      : null;
 
   const members = room.memberships.map((m) => ({
     id: m.user.id,
@@ -153,14 +157,23 @@ export default async function RoomPage({
                           </span>
                         )}
                       </span>
-                      <span
-                        className={`text-xs ${
-                          m.hasSubmitted
-                            ? "text-emerald-700"
-                            : "text-muted-foreground"
-                        }`}
-                      >
-                        {m.hasSubmitted ? "✓ submitted" : "waiting"}
+                      <span className="flex shrink-0 items-center gap-1">
+                        <span
+                          className={`text-xs ${
+                            m.hasSubmitted
+                              ? "text-emerald-700"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          {m.hasSubmitted ? "✓ submitted" : "waiting"}
+                        </span>
+                        {isOwner && isOpen && m.id !== user.id && (
+                          <RemoveMemberButton
+                            roomId={room.id}
+                            userId={m.id}
+                            displayName={m.displayName}
+                          />
+                        )}
                       </span>
                     </li>
                   ))}

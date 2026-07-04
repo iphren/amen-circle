@@ -3,6 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { requireCurrentUser } from "@/lib/current-user";
 import { SiteNav } from "@/components/site-nav";
 import { PasskeyManager } from "@/app/settings/passkey-manager";
+import { DeleteAccount } from "@/app/settings/delete-account";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export const metadata: Metadata = {
   title: "Settings",
@@ -28,9 +36,9 @@ export default async function SettingsPage() {
       <main className="max-w-5xl p-6 sm:p-8 lg:mx-auto">
         <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Manage the passkeys that can sign in to your account.
+          Manage your passkeys, your data, and your account.
         </p>
-        <div className="mt-8">
+        <div className="mt-8 flex flex-col gap-6">
           <PasskeyManager
             initialPasskeys={passkeys.map((p) => ({
               id: p.id,
@@ -39,6 +47,24 @@ export default async function SettingsPage() {
               createdAt: p.createdAt.toISOString(),
             }))}
           />
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Your data</CardTitle>
+              <CardDescription>
+                Download a copy of everything we hold about you — profile,
+                consent records, circles, and your prayer requests — as JSON.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Plain link: same-origin cookie auth, works without JS. */}
+              <a href="/api/my/export" className="text-sm underline">
+                Download my data
+              </a>
+            </CardContent>
+          </Card>
+
+          <DeleteAccount />
         </div>
       </main>
     </>

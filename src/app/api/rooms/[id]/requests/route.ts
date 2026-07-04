@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/auth-guard";
-import { encrypt } from "@/lib/crypto";
+import { encryptContent } from "@/lib/crypto";
 
 interface CreateRequestBody {
   content?: string;
@@ -44,7 +44,9 @@ export async function POST(
     return NextResponse.json({ error: "room is closed" }, { status: 400 });
   }
 
-  const stored = isConfidential ? encrypt(content) : content;
+  // All content is encrypted at rest; isConfidential is purely a visibility
+  // flag (hide author identity / reveal-to-pray UI).
+  const stored = encryptContent(content);
 
   const existing = await prisma.prayerRequest.findFirst({
     where: { roomId, authorId: auth.userId },

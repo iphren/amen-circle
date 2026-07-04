@@ -18,6 +18,14 @@ model User {
   displayName String
   createdAt   DateTime @default(now())
 
+  // Consent records (UK GDPR): nullable because rows predating the consent
+  // flow exist; those users are gated in-app until they accept (ConsentGate).
+  // religiousDataConsentAt is the Art. 9(2)(a) explicit consent for prayer
+  // content and is deliberately separate from terms acceptance (unbundled).
+  termsAcceptedAt        DateTime?
+  religiousDataConsentAt DateTime?
+  ageConfirmedAt         DateTime?
+
   passkeys         Passkey[]
   recoveryTokens   RecoveryToken[]
   loginTokens      LoginToken[]

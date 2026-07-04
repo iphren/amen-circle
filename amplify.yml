@@ -17,7 +17,7 @@ applications:
             # Lambda at runtime, so we snapshot the runtime env vars into a
             # server-only JSON file. instrumentation.ts reads it on cold start.
             # DATABASE_URL_DIRECT is build-time only and intentionally omitted.
-            - node -e "require('fs').writeFileSync('.next/server/runtime-env.json', JSON.stringify({DATABASE_URL:process.env.DATABASE_URL,SESSION_SECRET:process.env.SESSION_SECRET,ENCRYPTION_KEY:process.env.ENCRYPTION_KEY,WEBAUTHN_RPID:process.env.WEBAUTHN_RPID,WEBAUTHN_ORIGIN:process.env.WEBAUTHN_ORIGIN,EMAIL_FROM:process.env.EMAIL_FROM,SES_REGION:process.env.SES_REGION,SES_ACCESS_KEY_ID:process.env.SES_ACCESS_KEY_ID,SES_SECRET_ACCESS_KEY:process.env.SES_SECRET_ACCESS_KEY}))"
+            - node -e "require('fs').writeFileSync('.next/server/runtime-env.json', JSON.stringify({DATABASE_URL:process.env.DATABASE_URL,SESSION_SECRET:process.env.SESSION_SECRET,ENCRYPTION_KEY:process.env.ENCRYPTION_KEY,WEBAUTHN_RPID:process.env.WEBAUTHN_RPID,WEBAUTHN_ORIGIN:process.env.WEBAUTHN_ORIGIN,EMAIL_FROM:process.env.EMAIL_FROM,EMAIL_POSTAL_ADDRESS:process.env.EMAIL_POSTAL_ADDRESS,EMAIL_REPLY_TO:process.env.EMAIL_REPLY_TO,SES_REGION:process.env.SES_REGION,SES_ACCESS_KEY_ID:process.env.SES_ACCESS_KEY_ID,SES_SECRET_ACCESS_KEY:process.env.SES_SECRET_ACCESS_KEY}))"
       artifacts:
         baseDirectory: .next
         files:

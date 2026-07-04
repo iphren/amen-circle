@@ -49,3 +49,18 @@ variable "email_from_address" {
   type    = string
   default = "no-reply@amencircle.com"
 }
+
+# Physical postal address shown in the footer of transactional emails —
+# expected by anti-spam rules. REPLACE the placeholder with the operator's
+# registered address (keep in sync with src/lib/legal.ts).
+variable "email_postal_address" {
+  type    = string
+  default = "[REGISTERED ADDRESS]"
+}
+
+# Monitored reply address for transactional email. Empty means the app falls
+# back to replying to var.email_from.
+variable "email_reply_to" {
+  type    = string
+  default = ""
+}
