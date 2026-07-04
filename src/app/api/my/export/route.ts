@@ -44,6 +44,7 @@ export async function GET() {
           content: true,
           isConfidential: true,
           createdAt: true,
+          answeredAt: true,
           room: { select: { id: true, name: true } },
         },
       },
@@ -52,6 +53,7 @@ export async function GET() {
           id: true,
           createdAt: true,
           prayedAt: true,
+          answeredAt: true,
           room: { select: { id: true, name: true } },
         },
       },
@@ -82,6 +84,7 @@ export async function GET() {
       isConfidential: r.isConfidential,
       content: decryptContent(r.content, r.isConfidential),
       createdAt: r.createdAt,
+      answeredAt: r.answeredAt,
     })),
     // Content omitted: it belongs to the authors, not the exporting user.
     requestsAssignedToYou: user.assignedRequests,

@@ -25,6 +25,7 @@ export async function GET() {
     author: r.author,
     createdAt: r.createdAt,
     prayedAt: r.prayedAt,
+    answeredAt: r.answeredAt,
   }));
 
   return NextResponse.json(out);

@@ -117,6 +117,9 @@ model PrayerRequest {
   isConfidential Boolean    @default(false)
   createdAt      DateTime   @default(now())
   prayedAt       DateTime?
+  // Set by the author ("prayer answered"); shown to the assignee as
+  // encouragement. Non-identifying in both directions.
+  answeredAt     DateTime?
 
   @@index([roomId])
   @@index([authorId])
