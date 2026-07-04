@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/auth-guard";
 import { decryptContent } from "@/lib/crypto";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveRequestLocale } from "@/lib/i18n/get-locale";
 
 // Data export (UK GDPR Art. 15/20): everything we hold about the requesting
 // user, as a downloadable JSON attachment. Requests merely *assigned* to the
@@ -60,7 +62,8 @@ export async function GET() {
     },
   });
   if (!user) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    const t = getDictionary(await resolveRequestLocale());
+    return NextResponse.json({ error: t.errors.unauthorized }, { status: 401 });
   }
 
   const exportData = {

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/auth-guard";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveRequestLocale } from "@/lib/i18n/get-locale";
 
 export async function GET(
   _req: Request,
@@ -8,6 +10,7 @@ export async function GET(
 ) {
   const auth = await requireUserId();
   if (auth instanceof NextResponse) return auth;
+  const t = getDictionary(await resolveRequestLocale());
 
   const { id } = await params;
 
@@ -25,12 +28,12 @@ export async function GET(
   });
 
   if (!room) {
-    return NextResponse.json({ error: "not found" }, { status: 404 });
+    return NextResponse.json({ error: t.errors.notFound }, { status: 404 });
   }
 
   const isMember = room.memberships.some((m) => m.userId === auth.userId);
   if (!isMember) {
-    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    return NextResponse.json({ error: t.errors.forbidden }, { status: 403 });
   }
 
   const submittedAuthorIds = new Set(room.requests.map((r) => r.authorId));
@@ -61,18 +64,19 @@ export async function DELETE(
 ) {
   const auth = await requireUserId();
   if (auth instanceof NextResponse) return auth;
+  const t = getDictionary(await resolveRequestLocale());
 
   const { id } = await params;
 
   const room = await prisma.prayerRoom.findUnique({ where: { id } });
   if (!room) {
-    return NextResponse.json({ error: "not found" }, { status: 404 });
+    return NextResponse.json({ error: t.errors.notFound }, { status: 404 });
   }
   if (room.ownerId !== auth.userId) {
-    return NextResponse.json({ error: "owner only" }, { status: 403 });
+    return NextResponse.json({ error: t.errors.ownerOnly }, { status: 403 });
   }
   if (room.status !== "OPEN") {
-    return NextResponse.json({ error: "room is closed" }, { status: 400 });
+    return NextResponse.json({ error: t.errors.roomClosed }, { status: 400 });
   }
 
   // Cascades in the schema remove memberships and requests along with the room.

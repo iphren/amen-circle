@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/auth-guard";
 import { LOCALE_COOKIE, isSupportedLocale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveRequestLocale } from "@/lib/i18n/get-locale";
 
 interface LanguageBody {
   language?: string;
@@ -17,8 +19,9 @@ export async function POST(req: Request) {
 
   const body = (await req.json().catch(() => ({}))) as LanguageBody;
   if (!isSupportedLocale(body.language)) {
+    const t = getDictionary(await resolveRequestLocale());
     return NextResponse.json(
-      { error: "unsupported language" },
+      { error: t.errors.unsupportedLanguage },
       { status: 400 },
     );
   }

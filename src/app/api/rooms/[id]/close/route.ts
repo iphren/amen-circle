@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/auth-guard";
 import { assignRequestsToMembers } from "@/lib/assign";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveRequestLocale } from "@/lib/i18n/get-locale";
 
 export async function POST(
   _req: Request,
@@ -9,6 +11,7 @@ export async function POST(
 ) {
   const auth = await requireUserId();
   if (auth instanceof NextResponse) return auth;
+  const t = getDictionary(await resolveRequestLocale());
 
   const { id: roomId } = await params;
 
@@ -20,23 +23,23 @@ export async function POST(
     },
   });
   if (!room) {
-    return NextResponse.json({ error: "not found" }, { status: 404 });
+    return NextResponse.json({ error: t.errors.notFound }, { status: 404 });
   }
   if (room.ownerId !== auth.userId) {
-    return NextResponse.json({ error: "owner only" }, { status: 403 });
+    return NextResponse.json({ error: t.errors.ownerOnly }, { status: 403 });
   }
   if (room.status !== "OPEN") {
-    return NextResponse.json({ error: "already closed" }, { status: 400 });
+    return NextResponse.json({ error: t.errors.alreadyClosed }, { status: 400 });
   }
   if (room.memberships.length < 2) {
     return NextResponse.json(
-      { error: "need at least 2 members" },
+      { error: t.errors.needTwoMembers },
       { status: 422 },
     );
   }
   if (room.requests.length === 0) {
     return NextResponse.json(
-      { error: "no requests to assign" },
+      { error: t.errors.noRequestsToAssign },
       { status: 422 },
     );
   }
@@ -45,7 +48,7 @@ export async function POST(
   const assignments = assignRequestsToMembers(room.requests, memberIds);
   if (!assignments) {
     return NextResponse.json(
-      { error: "could not generate valid assignment" },
+      { error: t.errors.couldNotGenerateAssignment },
       { status: 422 },
     );
   }

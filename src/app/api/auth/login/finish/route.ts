@@ -7,13 +7,16 @@ import type {
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { rpID, origin } from "@/lib/webauthn";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveRequestLocale } from "@/lib/i18n/get-locale";
 
 export async function POST(req: Request) {
+  const t = getDictionary(await resolveRequestLocale());
   const response = (await req.json()) as AuthenticationResponseJSON;
   const session = await getSession();
 
   if (!session.challenge) {
-    return NextResponse.json({ error: "no pending login" }, { status: 400 });
+    return NextResponse.json({ error: t.errors.noPendingLogin }, { status: 400 });
   }
 
   const passkey = await prisma.passkey.findUnique({
@@ -21,7 +24,7 @@ export async function POST(req: Request) {
   });
 
   if (!passkey) {
-    return NextResponse.json({ error: "unknown credential" }, { status: 400 });
+    return NextResponse.json({ error: t.errors.unknownCredential }, { status: 400 });
   }
 
   const verification = await verifyAuthenticationResponse({
@@ -38,7 +41,7 @@ export async function POST(req: Request) {
   });
 
   if (!verification.verified) {
-    return NextResponse.json({ error: "verification failed" }, { status: 400 });
+    return NextResponse.json({ error: t.errors.verificationFailed }, { status: 400 });
   }
 
   await prisma.passkey.update({

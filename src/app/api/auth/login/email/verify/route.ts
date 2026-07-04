@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { hashRecoveryToken } from "@/lib/recovery-token";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveRequestLocale } from "@/lib/i18n/get-locale";
 
 interface LoginEmailVerifyBody {
   token?: string;
@@ -10,11 +12,12 @@ interface LoginEmailVerifyBody {
 // Consume a raw email sign-in token and log the user in. Unlike recovery, this
 // grants a session directly — no passkey ceremony.
 export async function POST(req: Request) {
+  const t = getDictionary(await resolveRequestLocale());
   const body = (await req.json()) as LoginEmailVerifyBody;
   const raw = body.token?.trim();
 
   const invalid = NextResponse.json(
-    { error: "This sign-in link is invalid or has expired." },
+    { error: t.errors.signInLinkInvalid },
     { status: 400 },
   );
 

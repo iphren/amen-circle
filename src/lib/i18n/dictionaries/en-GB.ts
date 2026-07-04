@@ -357,6 +357,59 @@ export const enGB = {
     },
   },
 
+  // Error messages returned by API route handlers and shown to the user. The
+  // route resolves the request locale and returns the translated string.
+  errors: {
+    unauthorized: "unauthorized",
+    forbidden: "forbidden",
+    notFound: "not found",
+    verificationFailed: "verification failed",
+    // Rooms
+    roomNotFound: "room not found",
+    roomClosed: "room is closed",
+    alreadyClosed: "already closed",
+    notAMember: "not a member",
+    ownerOnly: "owner only",
+    onlyOwnerCanRemove: "only the owner can remove members",
+    ownerCannotBeRemoved: "the owner cannot be removed",
+    ownerMustCancel: "owner must cancel the room, not leave",
+    needTwoMembers: "need at least 2 members",
+    noRequestsToAssign: "no requests to assign",
+    couldNotGenerateAssignment: "could not generate valid assignment",
+    couldNotGenerateCode: "could not generate unique code",
+    codeRequired: "code required",
+    nameRequired: "name required",
+    contentRequired: "content required",
+    // Auth
+    noPendingEnrollment: "no pending enrollment",
+    noPendingRegistration: "no pending registration",
+    noPendingRecovery: "no pending recovery",
+    noPendingLogin: "no pending login",
+    unknownCredential: "unknown credential",
+    couldNotStartRegistration: "could not start registration",
+    emailAndDisplayNameRequired: "email and displayName required",
+    accountExists: "An account with this email already exists. Please sign in.",
+    recoveryLinkInvalid: "This recovery link is invalid or has expired.",
+    signInLinkInvalid: "This sign-in link is invalid or has expired.",
+    onlyPasskey:
+      "You can't remove your only passkey. Add a backup first, or use account recovery.",
+    // {max} interpolated
+    passkeyNameLength: "Name must be 1–{max} characters.",
+    // Misc
+    mustAcceptTermsToRegister:
+      "You must accept the terms and consent to the processing of your prayer requests to register.",
+    mustAcceptTerms:
+      "You must accept the terms and consent to the processing of your prayer requests.",
+    unsupportedLanguage: "unsupported language",
+    answeredMustBeBoolean: "answered must be a boolean",
+  },
+
+  notFound: {
+    title: "Page not found",
+    description: "The page you're looking for doesn't exist or has moved.",
+    backHome: "← Back to Amen Circle",
+  },
+
   legal: {
     back: "← Amen Circle",
     // {version} interpolated

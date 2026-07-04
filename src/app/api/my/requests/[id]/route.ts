@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/auth-guard";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveRequestLocale } from "@/lib/i18n/get-locale";
 
 export async function PATCH(
   req: Request,
@@ -8,6 +10,7 @@ export async function PATCH(
 ) {
   const auth = await requireUserId();
   if (auth instanceof NextResponse) return auth;
+  const t = getDictionary(await resolveRequestLocale());
 
   const { id } = await params;
 
@@ -19,13 +22,13 @@ export async function PATCH(
   // Treat "not yours" and "doesn't exist" identically so we don't leak which
   // request ids exist.
   if (!request || request.authorId !== auth.userId) {
-    return NextResponse.json({ error: "not found" }, { status: 404 });
+    return NextResponse.json({ error: t.errors.notFound }, { status: 404 });
   }
 
   const body = await req.json().catch(() => null);
   if (typeof body?.answered !== "boolean") {
     return NextResponse.json(
-      { error: "answered must be a boolean" },
+      { error: t.errors.answeredMustBeBoolean },
       { status: 400 },
     );
   }
@@ -45,6 +48,7 @@ export async function DELETE(
 ) {
   const auth = await requireUserId();
   if (auth instanceof NextResponse) return auth;
+  const t = getDictionary(await resolveRequestLocale());
 
   const { id } = await params;
 
@@ -55,7 +59,7 @@ export async function DELETE(
 
   // Same "not yours" == "doesn't exist" treatment as PATCH.
   if (!request || request.authorId !== auth.userId) {
-    return NextResponse.json({ error: "not found" }, { status: 404 });
+    return NextResponse.json({ error: t.errors.notFound }, { status: 404 });
   }
 
   await prisma.prayerRequest.delete({ where: { id } });

@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { hashRecoveryToken } from "@/lib/recovery-token";
 import { buildEnrollmentOptions } from "@/lib/passkey-enroll";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveRequestLocale } from "@/lib/i18n/get-locale";
 
 interface RecoverVerifyBody {
   token?: string;
@@ -14,11 +16,12 @@ interface RecoverVerifyBody {
 // /api/auth/recover/finish swaps them out atomically — that avoids ever leaving
 // the account in a zero-passkey state an unauthenticated register could claim.
 export async function POST(req: Request) {
+  const t = getDictionary(await resolveRequestLocale());
   const body = (await req.json()) as RecoverVerifyBody;
   const raw = body.token?.trim();
 
   const invalid = NextResponse.json(
-    { error: "This recovery link is invalid or has expired." },
+    { error: t.errors.recoveryLinkInvalid },
     { status: 400 },
   );
 

@@ -335,6 +335,55 @@ export const zhCN: DeepPartial<Dictionary> = {
     },
   },
 
+  errors: {
+    unauthorized: "未授权",
+    forbidden: "没有权限",
+    notFound: "未找到",
+    verificationFailed: "验证失败",
+    // 祷告房间
+    roomNotFound: "未找到祷告房间",
+    roomClosed: "祷告房间已关闭",
+    alreadyClosed: "已经关闭",
+    notAMember: "你不是成员",
+    ownerOnly: "仅限房主",
+    onlyOwnerCanRemove: "只有房主才能移除成员",
+    ownerCannotBeRemoved: "无法移除房主",
+    ownerMustCancel: "房主只能取消祷告房间，不能离开",
+    needTwoMembers: "至少需要 2 位成员",
+    noRequestsToAssign: "没有可分配的代祷事项",
+    couldNotGenerateAssignment: "无法生成有效的分配方案",
+    couldNotGenerateCode: "无法生成唯一房间号",
+    codeRequired: "请填写房间号",
+    nameRequired: "请填写名称",
+    contentRequired: "请填写内容",
+    // 认证
+    noPendingEnrollment: "没有待处理的通行密钥添加请求",
+    noPendingRegistration: "没有待处理的注册请求",
+    noPendingRecovery: "没有待处理的账号找回请求",
+    noPendingLogin: "没有待处理的登录请求",
+    unknownCredential: "未知的凭据",
+    couldNotStartRegistration: "无法开始注册",
+    emailAndDisplayNameRequired: "请填写邮箱和显示名称",
+    accountExists: "该邮箱已注册账号，请直接登录。",
+    recoveryLinkInvalid: "这个账号找回链接无效或已过期。",
+    signInLinkInvalid: "这个登录链接无效或已过期。",
+    onlyPasskey:
+      "你不能删除唯一的通行密钥。请先添加备用通行密钥，或使用账号找回。",
+    passkeyNameLength: "名称长度必须为 1–{max} 个字符。",
+    // 其他
+    mustAcceptTermsToRegister:
+      "你必须接受条款并同意处理你的代祷事项才能注册。",
+    mustAcceptTerms: "你必须接受条款并同意处理你的代祷事项。",
+    unsupportedLanguage: "不支持的语言",
+    answeredMustBeBoolean: "answered 必须是布尔值",
+  },
+
+  notFound: {
+    title: "页面未找到",
+    description: "你要找的页面不存在或已被移动。",
+    backHome: "← 返回同心圆",
+  },
+
   legal: {
     back: "← 同心圆",
     lastUpdated: "最后更新：{version}",

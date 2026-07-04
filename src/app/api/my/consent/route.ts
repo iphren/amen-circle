@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/auth-guard";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveRequestLocale } from "@/lib/i18n/get-locale";
 
 interface ConsentBody {
   acceptTerms?: boolean;
@@ -12,14 +14,12 @@ interface ConsentBody {
 export async function POST(req: Request) {
   const auth = await requireUserId();
   if (auth instanceof NextResponse) return auth;
+  const t = getDictionary(await resolveRequestLocale());
 
   const body = (await req.json()) as ConsentBody;
   if (body.acceptTerms !== true || body.consentReligiousData !== true) {
     return NextResponse.json(
-      {
-        error:
-          "You must accept the terms and consent to the processing of your prayer requests.",
-      },
+      { error: t.errors.mustAcceptTerms },
       { status: 400 },
     );
   }

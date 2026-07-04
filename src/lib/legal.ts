@@ -14,5 +14,7 @@ export const OPERATOR = {
 export const DOMAIN = "amencircle.com";
 
 // Bump these dates whenever the corresponding document materially changes.
-export const PRIVACY_VERSION = "4 July 2026";
-export const TERMS_VERSION = "4 July 2026";
+// ISO (YYYY-MM-DD) so the /privacy and /terms pages can render them in the
+// viewer's locale via formatDate (e.g. "4 July 2026" / "2026年7月4日").
+export const PRIVACY_VERSION = "2026-07-04";
+export const TERMS_VERSION = "2026-07-04";

@@ -3,6 +3,8 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { buildEnrollmentOptions } from "@/lib/passkey-enroll";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveRequestLocale } from "@/lib/i18n/get-locale";
 
 interface RegisterStartBody {
   email?: string;
@@ -12,13 +14,14 @@ interface RegisterStartBody {
 }
 
 export async function POST(req: Request) {
+  const t = getDictionary(await resolveRequestLocale());
   const body = (await req.json()) as RegisterStartBody;
   const email = body.email?.trim().toLowerCase();
   const displayName = body.displayName?.trim();
 
   if (!email || !displayName) {
     return NextResponse.json(
-      { error: "email and displayName required" },
+      { error: t.errors.emailAndDisplayNameRequired },
       { status: 400 },
     );
   }
@@ -29,10 +32,7 @@ export async function POST(req: Request) {
   // Art. 9(2)(a) explicit consent for prayer content.
   if (body.acceptTerms !== true || body.consentReligiousData !== true) {
     return NextResponse.json(
-      {
-        error:
-          "You must accept the terms and consent to the processing of your prayer requests to register.",
-      },
+      { error: t.errors.mustAcceptTermsToRegister },
       { status: 400 },
     );
   }
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 
   if (user && user.passkeys.length > 0) {
     return NextResponse.json(
-      { error: "An account with this email already exists. Please sign in." },
+      { error: t.errors.accountExists },
       { status: 409 },
     );
   }
@@ -88,10 +88,7 @@ export async function POST(req: Request) {
         });
         if (user && user.passkeys.length > 0) {
           return NextResponse.json(
-            {
-              error:
-                "An account with this email already exists. Please sign in.",
-            },
+            { error: t.errors.accountExists },
             { status: 409 },
           );
         }
@@ -110,7 +107,7 @@ export async function POST(req: Request) {
 
   if (!user) {
     return NextResponse.json(
-      { error: "could not start registration" },
+      { error: t.errors.couldNotStartRegistration },
       { status: 500 },
     );
   }

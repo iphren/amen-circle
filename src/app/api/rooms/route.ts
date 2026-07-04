@@ -3,6 +3,8 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/auth-guard";
 import { generateRoomCode } from "@/lib/room-code";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveRequestLocale } from "@/lib/i18n/get-locale";
 
 interface CreateRoomBody {
   name?: string;
@@ -11,11 +13,12 @@ interface CreateRoomBody {
 export async function POST(req: Request) {
   const auth = await requireUserId();
   if (auth instanceof NextResponse) return auth;
+  const t = getDictionary(await resolveRequestLocale());
 
   const body = (await req.json()) as CreateRoomBody;
   const name = body.name?.trim();
   if (!name) {
-    return NextResponse.json({ error: "name required" }, { status: 400 });
+    return NextResponse.json({ error: t.errors.nameRequired }, { status: 400 });
   }
 
   for (let attempt = 0; attempt < 10; attempt++) {
@@ -43,7 +46,7 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json(
-    { error: "could not generate unique code" },
+    { error: t.errors.couldNotGenerateCode },
     { status: 500 },
   );
 }
