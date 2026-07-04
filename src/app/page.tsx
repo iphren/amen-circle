@@ -26,10 +26,6 @@ export default async function Home() {
             Sign in
           </Link>
         </div>
-
-        <p className="mt-8 text-xs text-muted-foreground">
-          Passkeys only — no passwords, no email codes.
-        </p>
       </div>
     </main>
   );
