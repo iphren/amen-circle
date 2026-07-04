@@ -33,7 +33,7 @@ export default async function SettingsPage() {
   return (
     <>
       <SiteNav user={user} />
-      <main className="max-w-5xl p-6 sm:p-8 lg:mx-auto">
+      <main className="max-w-5xl p-8 lg:mx-auto">
         <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Manage your passkeys, your data, and your account.
@@ -52,8 +52,8 @@ export default async function SettingsPage() {
             <CardHeader>
               <CardTitle className="text-base">Your data</CardTitle>
               <CardDescription>
-                Download a copy of everything we hold about you — profile,
-                consent records, circles, and your prayer requests — as JSON.
+                Download a copy of everything we hold about you, profile,
+                consent records, circles, and your prayer requests, as JSON.
               </CardDescription>
             </CardHeader>
             <CardContent>

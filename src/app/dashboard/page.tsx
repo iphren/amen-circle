@@ -27,7 +27,7 @@ export default async function DashboardPage() {
     return (
       <>
         <SiteNav user={user} />
-        <main className="max-w-5xl p-6 sm:p-8 lg:mx-auto">
+        <main className="max-w-5xl p-8 lg:mx-auto">
           <ConsentGate />
         </main>
       </>
@@ -55,7 +55,7 @@ export default async function DashboardPage() {
   return (
     <>
       <SiteNav user={user} />
-      <main className="max-w-5xl p-6 sm:p-8 lg:mx-auto">
+      <main className="max-w-5xl p-8 lg:mx-auto">
         <div className="flex flex-col gap-8">
           {/* Constrain the action bar so it doesn't stretch; the rooms grid
               below is free to fill the full page width. */}

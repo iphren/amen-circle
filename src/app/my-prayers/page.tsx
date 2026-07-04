@@ -37,7 +37,7 @@ export default async function MyPrayersPage({
   return (
     <>
       <SiteNav user={user} />
-      <main className="max-w-5xl p-6 sm:p-8 lg:mx-auto">
+      <main className="max-w-5xl p-8 lg:mx-auto">
         <h1 className="text-2xl font-semibold tracking-tight">My prayers</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {tab === "received"
