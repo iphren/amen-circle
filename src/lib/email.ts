@@ -1,4 +1,5 @@
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import { OPERATOR } from "./legal";
 
 // Amplify WEB_COMPUTE SSR does not expose an assumable role to the runtime AWS
 // SDK, so the default provider chain finds no credentials. We pass an explicit,
@@ -45,7 +46,7 @@ const APP_NAME = "Amen Circle";
 // expected by anti-spam law for bulk senders). REPLACE the placeholder below
 // with the real registered address — overridable via EMAIL_POSTAL_ADDRESS.
 const ORG_POSTAL_ADDRESS =
-  process.env.EMAIL_POSTAL_ADDRESS || "Amen Circle — postal address pending";
+  process.env.EMAIL_POSTAL_ADDRESS || `© ${new Date().getFullYear()} ${OPERATOR.tradingName}, ${OPERATOR.registeredAddress}`;
 
 function escapeHtml(value: string): string {
   return value
