@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Collapsible } from "@base-ui/react/collapsible";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -48,33 +50,46 @@ export function DeleteAccount() {
 
   return (
     <Card className="border-destructive/40">
-      <CardHeader>
-        <CardTitle className="text-base">Danger zone</CardTitle>
-        <CardDescription>
-          Deleting your account removes your prayer requests and any circles
-          you own, for all their members. Consider{" "}
-          <a href="/api/my/export" className="underline">
-            downloading your data
-          </a>{" "}
-          first.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        <Button
-          variant="destructive"
-          className="self-start"
-          disabled={busy}
-          onClick={handleDelete}
-        >
-          {busy ? "Deleting…" : "Delete account"}
-        </Button>
-        {error && (
-          <p className="text-sm text-destructive" role="alert">
-            {error}
-          </p>
-        )}
-        {dialog}
-      </CardContent>
+      <Collapsible.Root defaultOpen={false}>
+        <CardHeader>
+          <Collapsible.Trigger className="group flex w-full items-center justify-between gap-2 text-left">
+            <div>
+              <CardTitle className="text-base">Danger zone</CardTitle>
+              <CardDescription>
+                Deleting your account removes your prayer requests and any
+                circles you own, for all their members. Consider{" "}
+                <a
+                  href="/api/my/export"
+                  className="underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  downloading your data
+                </a>{" "}
+                first.
+              </CardDescription>
+            </div>
+            <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[panel-open]:rotate-180" />
+          </Collapsible.Trigger>
+        </CardHeader>
+        <Collapsible.Panel className="overflow-hidden transition-[height] duration-200 ease-out data-[ending-style]:h-0 data-[starting-style]:h-0 h-[var(--collapsible-panel-height)]">
+          <CardContent className="flex flex-col pt-8 gap-3">
+            <Button
+              variant="destructive"
+              className="self-start"
+              disabled={busy}
+              onClick={handleDelete}
+            >
+              {busy ? "Deleting…" : "Delete account"}
+            </Button>
+            {error && (
+              <p className="text-sm text-destructive" role="alert">
+                {error}
+              </p>
+            )}
+            {dialog}
+          </CardContent>
+        </Collapsible.Panel>
+      </Collapsible.Root>
     </Card>
   );
 }
