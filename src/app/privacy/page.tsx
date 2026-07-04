@@ -42,8 +42,9 @@ export default function PrivacyPage() {
 
       <Section title="1. Who we are">
         <p>
-          Amen Circle ({DOMAIN}) is operated by {OPERATOR.legalName} (company
-          no. {OPERATOR.registrationNumber}), registered at{" "}
+          Amen Circle ({DOMAIN}) is operated by {OPERATOR.legalName} (trading
+          as {OPERATOR.tradingName}, company no. {OPERATOR.registrationNumber}
+          ), registered at{" "}
           {OPERATOR.registeredAddress}. We are the data controller for the
           personal data described in this policy. You can contact us at{" "}
           <a className="underline" href={`mailto:${OPERATOR.contactEmail}`}>

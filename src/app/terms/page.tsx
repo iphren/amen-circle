@@ -44,8 +44,9 @@ export default function TermsPage() {
         <p>
           Amen Circle ({DOMAIN}) lets small circles of trusted friends share
           prayer requests and pray for one another. The service is operated by{" "}
-          {OPERATOR.legalName} (company no. {OPERATOR.registrationNumber}),
-          registered at {OPERATOR.registeredAddress}. By creating an account
+          {OPERATOR.legalName} (trading as {OPERATOR.tradingName}, company
+          no. {OPERATOR.registrationNumber}), registered at{" "}
+          {OPERATOR.registeredAddress}. By creating an account
           you agree to these terms.
         </p>
       </Section>

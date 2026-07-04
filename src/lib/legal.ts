@@ -5,9 +5,10 @@
 
 export const OPERATOR = {
   legalName: "IPHREN LTD",
+  tradingName: "IHS Technology",
   registrationNumber: "12398659",
   registeredAddress: "Iphren Ltd, 124 City Road, London, England, EC1V 2NX",
-  contactEmail: "contact@iphren.com",
+  contactEmail: "hello@ihs.technology",
 } as const;
 
 export const DOMAIN = "amencircle.com";
