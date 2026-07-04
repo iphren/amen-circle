@@ -13,8 +13,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useConfirm } from "@/components/ui/confirm-dialog";
+import { useTranslations } from "@/components/i18n-provider";
+import { Inline } from "@/components/inline-md";
 
 export function DeleteAccount() {
+  const t = useTranslations();
   const router = useRouter();
   const { confirm, dialog } = useConfirm();
   const [busy, setBusy] = useState(false);
@@ -22,10 +25,9 @@ export function DeleteAccount() {
 
   async function handleDelete() {
     const ok = await confirm({
-      title: "Delete your account?",
-      description:
-        "This permanently deletes your account, your prayer requests, and any circles you own (for all their members). This cannot be undone.",
-      confirmText: "Delete everything",
+      title: t.settings.deleteConfirmTitle,
+      description: t.settings.deleteConfirmDescription,
+      confirmText: t.settings.deleteConfirmText,
       destructive: true,
     });
     if (!ok) return;
@@ -36,13 +38,13 @@ export function DeleteAccount() {
       const res = await fetch("/api/my/account", { method: "DELETE" });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error(j.error ?? "could not delete your account");
+        throw new Error(j.error ?? t.settings.couldNotDeleteAccount);
       }
       router.push("/");
       router.refresh();
     } catch (e) {
       setError(
-        e instanceof Error ? e.message : "could not delete your account",
+        e instanceof Error ? e.message : t.settings.couldNotDeleteAccount,
       );
       setBusy(false);
     }
@@ -54,18 +56,11 @@ export function DeleteAccount() {
         <CardHeader>
           <Collapsible.Trigger className="group flex w-full items-center justify-between gap-2 text-left">
             <div>
-              <CardTitle className="text-base">Danger zone</CardTitle>
+              <CardTitle className="text-base">
+                {t.settings.dangerTitle}
+              </CardTitle>
               <CardDescription>
-                Deleting your account removes your prayer requests and any
-                circles you own, for all their members. Consider{" "}
-                <a
-                  href="/api/my/export"
-                  className="underline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  downloading your data
-                </a>{" "}
-                first.
+                <Inline text={t.settings.dangerDescription} />
               </CardDescription>
             </div>
             <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[panel-open]:rotate-180" />
@@ -79,7 +74,7 @@ export function DeleteAccount() {
               disabled={busy}
               onClick={handleDelete}
             >
-              {busy ? "Deleting…" : "Delete account"}
+              {busy ? t.settings.deleting : t.settings.deleteAccount}
             </Button>
             {error && (
               <p className="text-sm text-destructive" role="alert">

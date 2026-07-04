@@ -12,8 +12,11 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslations } from "@/components/i18n-provider";
+import { interpolate } from "@/lib/i18n/interpolate";
 
 export function EmailLoginForm() {
+  const t = useTranslations();
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
@@ -37,38 +40,35 @@ export function EmailLoginForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Sign in with an email link</CardTitle>
+        <CardTitle>{t.emailLogin.title}</CardTitle>
         <CardDescription>
-          {sent
-            ? "Check your inbox."
-            : "Trouble with your passkey? Enter your email and we'll send you a link to sign in."}
+          {sent ? t.emailLogin.checkInbox : t.emailLogin.prompt}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {sent ? (
           <>
             <p className="text-sm text-muted-foreground">
-              If an account exists for <strong>{email}</strong>, we&apos;ve sent
-              a sign-in link. It expires in 15 minutes and can be used once.
+              {interpolate(t.emailLogin.sentNote, { email })}
             </p>
             <Link
               href="/auth"
               className="text-center text-sm text-muted-foreground hover:text-foreground"
             >
-              Back to sign in
+              {t.common.backToSignIn}
             </Link>
           </>
         ) : (
           <>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t.common.emailLabel}</Label>
               <Input
                 id="email"
                 type="email"
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder={t.common.emailPlaceholder}
               />
             </div>
             <Button
@@ -76,13 +76,13 @@ export function EmailLoginForm() {
               disabled={busy || email.trim().length === 0}
               className="mt-2"
             >
-              {busy ? "Sending…" : "Send sign-in link"}
+              {busy ? t.emailLogin.sending : t.emailLogin.sendLink}
             </Button>
             <Link
               href="/auth"
               className="mt-2 text-center text-sm text-muted-foreground hover:text-foreground"
             >
-              Back to sign in
+              {t.common.backToSignIn}
             </Link>
           </>
         )}

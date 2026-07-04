@@ -13,6 +13,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
+import { useI18n } from "@/components/i18n-provider";
+import { interpolate } from "@/lib/i18n/interpolate";
 
 interface Passkey {
   id: string;
@@ -21,19 +23,22 @@ interface Passkey {
   createdAt: string;
 }
 
-// Legacy passkeys enrolled before names were stored have a null name; fall back
-// to the old deviceType-based label so they still read sensibly.
-function passkeyLabel(pk: Passkey): string {
-  if (pk.name) return pk.name;
-  return pk.deviceType === "multiDevice" ? "Synced passkey" : "Device-bound passkey";
-}
-
 export function PasskeyManager({
   initialPasskeys,
 }: {
   initialPasskeys: Passkey[];
 }) {
+  const { locale, t } = useI18n();
   const router = useRouter();
+
+  // Legacy passkeys enrolled before names were stored have a null name; fall
+  // back to the old deviceType-based label so they still read sensibly.
+  function passkeyLabel(pk: Passkey): string {
+    if (pk.name) return pk.name;
+    return pk.deviceType === "multiDevice"
+      ? t.settings.syncedPasskey
+      : t.settings.deviceBoundPasskey;
+  }
   const [passkeys, setPasskeys] = useState<Passkey[]>(initialPasskeys);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +52,7 @@ export function PasskeyManager({
       const optsRes = await fetch("/api/auth/passkeys/start", {
         method: "POST",
       });
-      if (!optsRes.ok) throw new Error("could not start enrollment");
+      if (!optsRes.ok) throw new Error(t.settings.couldNotStartEnrollment);
       const options = await optsRes.json();
       const attResp = await startRegistration({ optionsJSON: options });
       const finishRes = await fetch("/api/auth/passkeys/finish", {
@@ -57,14 +62,14 @@ export function PasskeyManager({
       });
       if (!finishRes.ok) {
         const j = await finishRes.json().catch(() => ({}));
-        throw new Error(j.error ?? "enrollment failed");
+        throw new Error(j.error ?? t.settings.enrollmentFailed);
       }
       router.refresh();
       // Refresh server data; also reflect immediately.
       const listRes = await fetch("/api/auth/passkeys");
       if (listRes.ok) setPasskeys(await listRes.json());
     } catch (e) {
-      setError(e instanceof Error ? e.message : "could not add passkey");
+      setError(e instanceof Error ? e.message : t.settings.couldNotAddPasskey);
     } finally {
       setBusy(false);
     }
@@ -84,7 +89,7 @@ export function PasskeyManager({
   async function handleRename(id: string) {
     const name = draftName.trim();
     if (!name) {
-      setError("Name can't be empty.");
+      setError(t.settings.nameCannotBeEmpty);
       return;
     }
     setBusy(true);
@@ -97,7 +102,7 @@ export function PasskeyManager({
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error(j.error ?? "could not rename passkey");
+        throw new Error(j.error ?? t.settings.couldNotRenamePasskey);
       }
       const updated = await res.json();
       setPasskeys((prev) =>
@@ -106,7 +111,7 @@ export function PasskeyManager({
       cancelEditing();
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "could not rename passkey");
+      setError(e instanceof Error ? e.message : t.settings.couldNotRenamePasskey);
     } finally {
       setBusy(false);
     }
@@ -119,12 +124,12 @@ export function PasskeyManager({
       const res = await fetch(`/api/auth/passkeys/${id}`, { method: "DELETE" });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error(j.error ?? "could not remove passkey");
+        throw new Error(j.error ?? t.settings.couldNotRemovePasskey);
       }
       setPasskeys((prev) => prev.filter((p) => p.id !== id));
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "could not remove passkey");
+      setError(e instanceof Error ? e.message : t.settings.couldNotRemovePasskey);
     } finally {
       setBusy(false);
     }
@@ -133,11 +138,8 @@ export function PasskeyManager({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Passkeys</CardTitle>
-        <CardDescription>
-          Add a backup passkey on another device so you don&apos;t get locked
-          out if you lose this one.
-        </CardDescription>
+        <CardTitle className="text-base">{t.settings.passkeysTitle}</CardTitle>
+        <CardDescription>{t.settings.passkeysDescription}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <ul className="flex flex-col divide-y">
@@ -153,7 +155,7 @@ export function PasskeyManager({
                     value={draftName}
                     maxLength={60}
                     disabled={busy}
-                    aria-label="Passkey name"
+                    aria-label={t.settings.passkeyNameLabel}
                     onChange={(e) => setDraftName(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") handleRename(pk.id);
@@ -166,7 +168,7 @@ export function PasskeyManager({
                       disabled={busy || !draftName.trim()}
                       onClick={() => handleRename(pk.id)}
                     >
-                      Save
+                      {t.settings.save}
                     </Button>
                     <Button
                       variant="outline"
@@ -174,7 +176,7 @@ export function PasskeyManager({
                       disabled={busy}
                       onClick={cancelEditing}
                     >
-                      Cancel
+                      {t.settings.cancel}
                     </Button>
                   </div>
                 </>
@@ -185,7 +187,9 @@ export function PasskeyManager({
                       {passkeyLabel(pk)}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Added {formatDate(pk.createdAt)}
+                      {interpolate(t.settings.passkeyAdded, {
+                        date: formatDate(pk.createdAt, locale),
+                      })}
                     </p>
                   </div>
                   <div className="flex shrink-0 gap-2">
@@ -195,7 +199,7 @@ export function PasskeyManager({
                       disabled={busy}
                       onClick={() => startEditing(pk)}
                     >
-                      Rename
+                      {t.settings.rename}
                     </Button>
                     <Button
                       variant="destructive"
@@ -203,7 +207,7 @@ export function PasskeyManager({
                       disabled={busy || passkeys.length <= 1}
                       onClick={() => handleRemove(pk.id)}
                     >
-                      Remove
+                      {t.settings.remove}
                     </Button>
                   </div>
                 </>
@@ -214,12 +218,12 @@ export function PasskeyManager({
 
         {passkeys.length <= 1 && (
           <p className="text-xs text-muted-foreground">
-            You can&apos;t remove your only passkey. Add a backup first.
+            {t.settings.onlyPasskeyNote}
           </p>
         )}
 
         <Button onClick={handleAdd} disabled={busy} variant="outline">
-          {busy ? "Working…" : "Add a backup passkey"}
+          {busy ? t.settings.working : t.settings.addBackupPasskey}
         </Button>
 
         {error && (

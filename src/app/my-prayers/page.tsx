@@ -16,15 +16,15 @@ import {
 } from "@/components/ui/card";
 import { OPERATOR } from "@/lib/legal";
 import { SentRequestActions } from "./sent-request-actions";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { interpolate } from "@/lib/i18n/interpolate";
+import type { Locale } from "@/lib/i18n/config";
 
-export const metadata: Metadata = {
-  title: "My prayers",
-};
-
-const tabs = [
-  { key: "received", label: "Received", href: "/my-prayers" },
-  { key: "sent", label: "Sent", href: "/my-prayers?tab=sent" },
-] as const;
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return { title: t.metadata.myPrayersTitle };
+}
 
 export default async function MyPrayersPage({
   searchParams,
@@ -32,44 +32,64 @@ export default async function MyPrayersPage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   const user = await requireCurrentUser();
+  const locale = await getLocale();
+  const t = getDictionary(locale);
   const tab = (await searchParams).tab === "sent" ? "sent" : "received";
+
+  const tabs = [
+    { key: "received", label: t.myPrayers.tabReceived, href: "/my-prayers" },
+    { key: "sent", label: t.myPrayers.tabSent, href: "/my-prayers?tab=sent" },
+  ] as const;
 
   return (
     <>
       <SiteNav user={user} />
       <main className="max-w-5xl p-8 lg:mx-auto">
-        <h1 className="text-2xl font-semibold tracking-tight">My prayers</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {t.myPrayers.title}
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {tab === "received"
-            ? "Requests entrusted to you across all your rooms."
-            : "Requests you have shared with your rooms."}
+            ? t.myPrayers.receivedSubtitle
+            : t.myPrayers.sentSubtitle}
         </p>
 
-        <nav className="mt-6 flex gap-2" aria-label="My prayers tabs">
-          {tabs.map((t) => (
+        <nav className="mt-6 flex gap-2" aria-label={t.myPrayers.tabsLabel}>
+          {tabs.map((item) => (
             <Link
-              key={t.key}
-              href={t.href}
-              aria-current={tab === t.key ? "page" : undefined}
+              key={item.key}
+              href={item.href}
+              aria-current={tab === item.key ? "page" : undefined}
               className={cn(
                 "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
-                tab === t.key
+                tab === item.key
                   ? "border-transparent bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
             >
-              {t.label}
+              {item.label}
             </Link>
           ))}
         </nav>
 
-        {tab === "received" ? <ReceivedList userId={user.id} /> : <SentList userId={user.id} />}
+        {tab === "received" ? (
+          <ReceivedList userId={user.id} locale={locale} />
+        ) : (
+          <SentList userId={user.id} locale={locale} />
+        )}
       </main>
     </>
   );
 }
 
-async function ReceivedList({ userId }: { userId: string }) {
+async function ReceivedList({
+  userId,
+  locale,
+}: {
+  userId: string;
+  locale: Locale;
+}) {
+  const t = getDictionary(locale);
   const rows = await prisma.prayerRequest.findMany({
     where: { assignedToId: userId },
     include: {
@@ -93,8 +113,7 @@ async function ReceivedList({ userId }: { userId: string }) {
   if (items.length === 0) {
     return (
       <p className="mt-8 text-sm text-muted-foreground">
-        Nothing here yet. Once a room you&apos;re in is closed, requests
-        assigned to you will show up here.
+        {t.myPrayers.receivedEmpty}
       </p>
     );
   }
@@ -115,19 +134,19 @@ async function ReceivedList({ userId }: { userId: string }) {
                 <span className="flex shrink-0 items-center gap-1.5">
                   {it.answeredAt && (
                     <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                      Prayer answered
+                      {t.myPrayers.prayerAnswered}
                     </span>
                   )}
                   {it.isConfidential && (
                     <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                      confidential
+                      {t.myPrayers.confidential}
                     </span>
                   )}
                 </span>
               </CardTitle>
               <CardDescription className="flex flex-wrap items-center gap-1.5">
-                From <UserChip name={it.authorName} /> ·{" "}
-                {formatDate(it.createdAt)}
+                {t.myPrayers.fromLabel} <UserChip name={it.authorName} /> ·{" "}
+                {formatDate(it.createdAt, locale)}
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
@@ -140,10 +159,10 @@ async function ReceivedList({ userId }: { userId: string }) {
               <a
                 className="self-end text-xs text-muted-foreground hover:underline"
                 href={`mailto:${OPERATOR.contactEmail}?subject=${encodeURIComponent(
-                  `Report content — request ${it.id}`,
+                  interpolate(t.myPrayers.reportSubject, { id: it.id }),
                 )}`}
               >
-                Report
+                {t.myPrayers.report}
               </a>
             </CardContent>
           </Card>
@@ -153,7 +172,14 @@ async function ReceivedList({ userId }: { userId: string }) {
   );
 }
 
-async function SentList({ userId }: { userId: string }) {
+async function SentList({
+  userId,
+  locale,
+}: {
+  userId: string;
+  locale: Locale;
+}) {
+  const t = getDictionary(locale);
   // Explicit select: never expose assignedTo/assignedToId here. The author
   // must not be able to learn who is praying for them.
   const rows = await prisma.prayerRequest.findMany({
@@ -182,8 +208,7 @@ async function SentList({ userId }: { userId: string }) {
   if (items.length === 0) {
     return (
       <p className="mt-8 text-sm text-muted-foreground">
-        Nothing here yet. Share a request in one of your rooms and it will
-        show up here.
+        {t.myPrayers.sentEmpty}
       </p>
     );
   }
@@ -203,11 +228,11 @@ async function SentList({ userId }: { userId: string }) {
                 </Link>
                 {it.isConfidential && (
                   <span className="shrink-0 rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                    confidential
+                    {t.myPrayers.confidential}
                   </span>
                 )}
               </CardTitle>
-              <CardDescription>{formatDate(it.createdAt)}</CardDescription>
+              <CardDescription>{formatDate(it.createdAt, locale)}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               <p className="whitespace-pre-wrap text-sm leading-relaxed">

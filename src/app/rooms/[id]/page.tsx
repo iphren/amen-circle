@@ -17,6 +17,9 @@ import { RoomActions } from "@/app/rooms/[id]/room-actions";
 import { ShareButton } from "@/app/rooms/[id]/share-button";
 import { RoomStatusChip } from "@/components/room-status-chip";
 import { RemoveMemberButton } from "@/app/rooms/[id]/remove-member-button";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { interpolate } from "@/lib/i18n/interpolate";
 
 // Memoized per request so generateMetadata and the page component share a
 // single query instead of each fetching the same room. Selects the superset
@@ -41,7 +44,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const room = await getRoom(id);
-  return { title: room?.name ?? "Room" };
+  if (room?.name) return { title: room.name };
+  const t = getDictionary(await getLocale());
+  return { title: t.metadata.roomFallbackTitle };
 }
 
 export default async function RoomPage({
@@ -50,6 +55,7 @@ export default async function RoomPage({
   params: Promise<{ id: string }>;
 }) {
   const user = await requireCurrentUser();
+  const t = getDictionary(await getLocale());
   const { id } = await params;
 
   const room = await getRoom(id);
@@ -62,9 +68,9 @@ export default async function RoomPage({
       <>
         <SiteNav user={user} />
         <main className="mx-auto max-w-2xl px-3 py-12 text-center sm:px-4">
-          <h1 className="text-xl font-semibold">Not a member</h1>
+          <h1 className="text-xl font-semibold">{t.room.notMemberTitle}</h1>
           <p className="mt-2 text-muted-foreground">
-            Ask the owner to share the room code with you.
+            {t.room.notMemberDescription}
           </p>
         </main>
       </>
@@ -107,8 +113,11 @@ export default async function RoomPage({
               <RoomStatusChip status={room.status} />
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              Code <code className="font-mono">{room.code}</code> · {members.length}{" "}
-              member{members.length === 1 ? "" : "s"}
+              {interpolate(t.room.roomMeta, {
+                code: room.code,
+                count: members.length,
+                plural: members.length === 1 ? "" : "s",
+              })}
             </p>
           </div>
           <div className="flex shrink-0 items-start gap-2">
@@ -132,9 +141,12 @@ export default async function RoomPage({
           <aside>
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Members</CardTitle>
+                <CardTitle className="text-base">{t.room.membersTitle}</CardTitle>
                 <CardDescription>
-                  {submittedAuthorIds.size} of {members.length} have submitted
+                  {interpolate(t.room.membersSubmitted, {
+                    submitted: submittedAuthorIds.size,
+                    total: members.length,
+                  })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -148,12 +160,12 @@ export default async function RoomPage({
                         {m.displayName}
                         {m.id === user.id && (
                           <span className="ml-1 text-muted-foreground">
-                            (you)
+                            {t.room.you}
                           </span>
                         )}
                         {m.id === room.ownerId && (
                           <span className="ml-1 text-xs text-muted-foreground">
-                            · owner
+                            {t.room.ownerTag}
                           </span>
                         )}
                       </span>
@@ -165,7 +177,7 @@ export default async function RoomPage({
                               : "text-muted-foreground"
                           }`}
                         >
-                          {m.hasSubmitted ? "✓ submitted" : "waiting"}
+                          {m.hasSubmitted ? t.room.submitted : t.room.waiting}
                         </span>
                         {isOwner && isOpen && m.id !== user.id && (
                           <RemoveMemberButton

@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "@/components/i18n-provider";
 
 export function ShareButton({ code }: { code: string }) {
+  const t = useTranslations();
   const [copied, setCopied] = useState(false);
 
   async function copyLink() {
@@ -19,7 +21,7 @@ export function ShareButton({ code }: { code: string }) {
 
   return (
     <Button variant="outline" size="sm" onClick={copyLink}>
-      {copied ? "Copied!" : "Copy link"}
+      {copied ? t.room.shareCopied : t.room.share}
     </Button>
   );
 }

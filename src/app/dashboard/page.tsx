@@ -4,10 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { requireCurrentUser } from "@/lib/current-user";
 import { SiteNav } from "@/components/site-nav";
 import { ConsentGate } from "@/components/consent-gate";
-
-export const metadata: Metadata = {
-  title: "Rooms",
-};
 import {
   Card,
   CardContent,
@@ -18,9 +14,19 @@ import {
 import { DashboardActions } from "@/app/dashboard/dashboard-actions";
 import { RoomStatusChip } from "@/components/room-status-chip";
 import { formatDate } from "@/lib/utils";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { interpolate } from "@/lib/i18n/interpolate";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return { title: t.metadata.roomsTitle };
+}
 
 export default async function DashboardPage() {
   const user = await requireCurrentUser();
+  const locale = await getLocale();
+  const t = getDictionary(locale);
 
   // Accounts predating the consent flow must accept before using the app.
   if (user.religiousDataConsentAt === null) {
@@ -64,11 +70,12 @@ export default async function DashboardPage() {
           </div>
 
           <section>
-            <h2 className="text-lg font-semibold tracking-tight">Your rooms</h2>
+            <h2 className="text-lg font-semibold tracking-tight">
+              {t.dashboard.yourRooms}
+            </h2>
             {memberships.length === 0 ? (
               <p className="mt-3 text-sm text-muted-foreground">
-                You haven&apos;t joined any rooms yet. Create one or join with
-                a code above.
+                {t.dashboard.noRooms}
               </p>
             ) : (
               <ul className="mt-4 grid gap-3 grid-cols-1 sm:grid-cols-2">
@@ -82,14 +89,20 @@ export default async function DashboardPage() {
                             <RoomStatusChip status={m.room.status} />
                           </CardTitle>
                           <CardDescription>
-                            Code <code className="font-mono">{m.room.code}</code>{" "}
-                            · {m.room._count.memberships} member
-                            {m.room._count.memberships === 1 ? "" : "s"}
-                            {m.room.ownerId === user.id && " · you own this"}
+                            {interpolate(t.dashboard.roomMeta, {
+                              code: m.room.code,
+                              count: m.room._count.memberships,
+                              plural:
+                                m.room._count.memberships === 1 ? "" : "s",
+                            })}
+                            {m.room.ownerId === user.id &&
+                              t.dashboard.youOwnThis}
                           </CardDescription>
                         </CardHeader>
                         <CardContent className="text-xs text-muted-foreground">
-                          Created {formatDate(m.room.createdAt)}
+                          {interpolate(t.dashboard.created, {
+                            date: formatDate(m.room.createdAt, locale),
+                          })}
                         </CardContent>
                       </Card>
                     </Link>

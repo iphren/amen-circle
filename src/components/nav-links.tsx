@@ -3,15 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-
-const links = [
-  { href: "/my-prayers", label: "My prayers" },
-  { href: "/settings", label: "Settings" },
-];
-
-// In the mobile drawer the logo isn't a convenient way back to the dashboard,
-// so surface it as an explicit link there.
-const drawerLinks = [{ href: "/dashboard", label: "Dashboard" }, ...links];
+import { useTranslations } from "@/components/i18n-provider";
 
 export function NavLinks({
   orientation = "horizontal",
@@ -20,9 +12,19 @@ export function NavLinks({
   orientation?: "horizontal" | "vertical";
   onNavigate?: () => void;
 }) {
+  const t = useTranslations();
   const pathname = usePathname();
   const isVertical = orientation === "vertical";
-  const items = isVertical ? drawerLinks : links;
+
+  const links = [
+    { href: "/my-prayers", label: t.nav.myPrayers },
+    { href: "/settings", label: t.nav.settings },
+  ];
+  // In the mobile drawer the logo isn't a convenient way back to the dashboard,
+  // so surface it as an explicit link there.
+  const items = isVertical
+    ? [{ href: "/dashboard", label: t.nav.dashboard }, ...links]
+    : links;
 
   return (
     <nav

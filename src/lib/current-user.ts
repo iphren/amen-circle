@@ -10,6 +10,9 @@ export interface CurrentUser {
   // Null for accounts created before the consent flow; the dashboard blocks
   // such users behind ConsentGate until they accept.
   religiousDataConsentAt: Date | null;
+  // Null until the user picks a language in Settings; the app detects a locale
+  // from the browser in that case. See src/lib/i18n/get-locale.ts.
+  preferredLanguage: string | null;
 }
 
 // Memoized per request so multiple resolvers in one render (e.g. a page and its
@@ -26,6 +29,7 @@ export const getCurrentUser = cache(
         email: true,
         displayName: true,
         religiousDataConsentAt: true,
+        preferredLanguage: true,
       },
     });
   },

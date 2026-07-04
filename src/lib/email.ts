@@ -1,5 +1,8 @@
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 import { OPERATOR } from "./legal";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { interpolate } from "@/lib/i18n/interpolate";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
 
 // Amplify WEB_COMPUTE SSR does not expose an assumable role to the runtime AWS
 // SDK, so the default provider chain finds no credentials. We pass an explicit,
@@ -39,8 +42,6 @@ function replyToAddress(): string {
   return process.env.EMAIL_REPLY_TO || fromAddress();
 }
 
-const APP_NAME = "Amen Circle";
-
 // Postal address shown in the footer. A physical address is a strong "this is
 // legitimate transactional mail, not phishing" signal for spam filters (and is
 // expected by anti-spam law for bulk senders). REPLACE the placeholder below
@@ -64,24 +65,26 @@ function escapeHtml(value: string): string {
 //   - real branding, an explanation of why the email was received, and a
 //     postal address in the footer (so it reads as legitimate, not sparse).
 function renderEmail(args: {
+  locale: Locale;
   bodyIntro: string;
   ctaLabel: string;
   ctaUrl: string;
   expiryNote: string;
 }): { html: string; text: string } {
-  const { bodyIntro, ctaLabel, ctaUrl, expiryNote } = args;
+  const { locale, bodyIntro, ctaLabel, ctaUrl, expiryNote } = args;
+  const t = getDictionary(locale);
+  const appName = t.common.appName;
 
   const safeUrl = escapeHtml(ctaUrl);
-  const whyLine = `You're receiving this because this email address was used to sign in to ${APP_NAME}.`;
-  const ignoreLine =
-    "If you didn't request this, you can safely ignore this email — nothing changes.";
+  const whyLine = interpolate(t.emails.whyLine, { appName });
+  const ignoreLine = t.emails.ignoreLine;
 
   const html = `<!DOCTYPE html>
-<html lang="en">
+<html lang="${locale}">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>${escapeHtml(APP_NAME)}</title>
+    <title>${escapeHtml(appName)}</title>
   </head>
   <body style="margin:0;padding:0;background:#f4f4f5;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;">
@@ -89,7 +92,7 @@ function renderEmail(args: {
         <td align="center" style="padding:24px 12px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:8px;border:1px solid #e4e4e7;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#18181b;">
             <tr>
-              <td style="padding:24px 24px 8px;font-size:18px;font-weight:600;">${escapeHtml(APP_NAME)}</td>
+              <td style="padding:24px 24px 8px;font-size:18px;font-weight:600;">${escapeHtml(appName)}</td>
             </tr>
             <tr>
               <td style="padding:0 24px;font-size:15px;line-height:1.5;">
@@ -97,7 +100,7 @@ function renderEmail(args: {
                 <p style="margin:0 0 16px;">
                   <a href="${safeUrl}" style="display:inline-block;background:#18181b;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:6px;font-weight:600;">${escapeHtml(ctaLabel)}</a>
                 </p>
-                <p style="margin:0 0 8px;font-size:13px;color:#52525b;">Or paste this link into your browser:</p>
+                <p style="margin:0 0 8px;font-size:13px;color:#52525b;">${escapeHtml(t.emails.orPasteLink)}</p>
                 <p style="margin:0 0 16px;font-size:13px;word-break:break-all;"><a href="${safeUrl}" style="color:#2563eb;">${safeUrl}</a></p>
                 <p style="margin:0 0 16px;font-size:13px;color:#52525b;">${escapeHtml(expiryNote)}</p>
                 <p style="margin:0 0 8px;font-size:13px;color:#52525b;">${escapeHtml(ignoreLine)}</p>
@@ -117,7 +120,7 @@ function renderEmail(args: {
 </html>`;
 
   const text = [
-    APP_NAME,
+    appName,
     "",
     bodyIntro,
     "",
@@ -138,25 +141,38 @@ function renderEmail(args: {
 
 type EmailTemplate = { subject: string; html: string; text: string };
 
-function recoveryEmailTemplate(recoverUrl: string): EmailTemplate {
+function recoveryEmailTemplate(
+  recoverUrl: string,
+  locale: Locale,
+): EmailTemplate {
+  const t = getDictionary(locale);
   const { html, text } = renderEmail({
-    bodyIntro: `You asked to recover access to your ${APP_NAME} account.`,
-    ctaLabel: "Set up a new passkey",
+    locale,
+    bodyIntro: interpolate(t.emails.recovery.bodyIntro, {
+      appName: t.common.appName,
+    }),
+    ctaLabel: t.emails.recovery.ctaLabel,
     ctaUrl: recoverUrl,
-    expiryNote:
-      "This link expires in 20 minutes and can be used once. Setting up a new passkey removes any old passkeys on the account.",
+    expiryNote: t.emails.recovery.expiryNote,
   });
-  return { subject: "Recover your Amen Circle account", html, text };
+  return { subject: t.emails.recovery.subject, html, text };
 }
 
-function loginLinkEmailTemplate(loginUrl: string): EmailTemplate {
+function loginLinkEmailTemplate(
+  loginUrl: string,
+  locale: Locale,
+): EmailTemplate {
+  const t = getDictionary(locale);
   const { html, text } = renderEmail({
-    bodyIntro: `You asked to sign in to ${APP_NAME} with an email link.`,
-    ctaLabel: "Sign in",
+    locale,
+    bodyIntro: interpolate(t.emails.loginLink.bodyIntro, {
+      appName: t.common.appName,
+    }),
+    ctaLabel: t.emails.loginLink.ctaLabel,
     ctaUrl: loginUrl,
-    expiryNote: "This link expires in 15 minutes and can be used once.",
+    expiryNote: t.emails.loginLink.expiryNote,
   });
-  return { subject: "Your Amen Circle sign-in link", html, text };
+  return { subject: t.emails.loginLink.subject, html, text };
 }
 
 async function deliver(to: string, template: EmailTemplate): Promise<void> {
@@ -179,35 +195,46 @@ async function deliver(to: string, template: EmailTemplate): Promise<void> {
 export async function sendRecoveryEmail(args: {
   to: string;
   recoverUrl: string;
+  locale?: Locale;
 }): Promise<void> {
-  await deliver(args.to, recoveryEmailTemplate(args.recoverUrl));
+  await deliver(
+    args.to,
+    recoveryEmailTemplate(args.recoverUrl, args.locale ?? DEFAULT_LOCALE),
+  );
 }
 
 export async function sendLoginLinkEmail(args: {
   to: string;
   loginUrl: string;
+  locale?: Locale;
 }): Promise<void> {
-  await deliver(args.to, loginLinkEmailTemplate(args.loginUrl));
+  await deliver(
+    args.to,
+    loginLinkEmailTemplate(args.loginUrl, args.locale ?? DEFAULT_LOCALE),
+  );
 }
 
 // Sample data for local template previews (see src/app/dev/emails). Building
-// these doesn't touch the SES client, so no AWS credentials are needed.
+// these doesn't touch the SES client, so no AWS credentials are needed. Preview
+// labels use the default locale.
 export const PREVIEW_EMAIL_TEMPLATES: Record<
   string,
-  { label: string; build: () => EmailTemplate }
+  { label: string; build: (locale?: Locale) => EmailTemplate }
 > = {
   recovery: {
-    label: "Account recovery",
-    build: () =>
+    label: getDictionary(DEFAULT_LOCALE).emails.recovery.previewLabel,
+    build: (locale = DEFAULT_LOCALE) =>
       recoveryEmailTemplate(
         "https://amencircle.com/auth/recover?token=sample-preview-token",
+        locale,
       ),
   },
   "login-link": {
-    label: "Email sign-in link",
-    build: () =>
+    label: getDictionary(DEFAULT_LOCALE).emails.loginLink.previewLabel,
+    build: (locale = DEFAULT_LOCALE) =>
       loginLinkEmailTemplate(
         "https://amencircle.com/auth/email-login?token=sample-preview-token",
+        locale,
       ),
   },
 };

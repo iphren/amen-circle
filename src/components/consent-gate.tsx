@@ -11,11 +11,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ConsentCheckboxes } from "@/components/consent-checkboxes";
+import { useTranslations } from "@/components/i18n-provider";
 
 // Shown instead of the dashboard to accounts created before the consent flow
 // existed. Blocks the app until the user records the consent that new
 // registrations capture at sign-up.
 export function ConsentGate() {
+  const t = useTranslations();
   const router = useRouter();
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [consentReligiousData, setConsentReligiousData] = useState(false);
@@ -33,11 +35,11 @@ export function ConsentGate() {
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error(j.error ?? "could not save your consent");
+        throw new Error(j.error ?? t.consent.couldNotSave);
       }
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "could not save your consent");
+      setError(e instanceof Error ? e.message : t.consent.couldNotSave);
       setBusy(false);
     }
   }
@@ -45,12 +47,8 @@ export function ConsentGate() {
   return (
     <Card className="mx-auto w-full max-w-md">
       <CardHeader>
-        <CardTitle>Before you continue</CardTitle>
-        <CardDescription>
-          We&apos;ve added a privacy policy and terms of service. Because
-          prayer requests can reveal your religious beliefs, we need your
-          explicit consent to keep storing them.
-        </CardDescription>
+        <CardTitle>{t.consent.gateTitle}</CardTitle>
+        <CardDescription>{t.consent.gateDescription}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <ConsentCheckboxes
@@ -64,7 +62,7 @@ export function ConsentGate() {
           onClick={handleAccept}
           disabled={busy || !acceptTerms || !consentReligiousData}
         >
-          {busy ? "Saving…" : "Agree and continue"}
+          {busy ? t.consent.saving : t.consent.agreeAndContinue}
         </Button>
         {error && (
           <p className="text-sm text-destructive" role="alert">
@@ -72,8 +70,7 @@ export function ConsentGate() {
           </p>
         )}
         <p className="text-xs text-muted-foreground">
-          If you don&apos;t agree, you can delete your account and data from
-          Settings.
+          {t.consent.gateFootnote}
         </p>
       </CardContent>
     </Card>

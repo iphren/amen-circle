@@ -17,9 +17,10 @@ export function safeInternalPath(next?: string, fallback = "/dashboard") {
 }
 
 // Locale-deterministic so server and client render the same string (no
-// hydration drift). Renders e.g. "3 July 2026".
-export function formatDate(date: Date | string) {
-  return new Date(date).toLocaleDateString("en-GB", {
+// hydration drift): the caller passes the active locale. Renders e.g.
+// "3 July 2026" (en-GB) or "2026年7月3日" (zh-CN).
+export function formatDate(date: Date | string, locale = "en-GB") {
+  return new Date(date).toLocaleDateString(locale, {
     day: "numeric",
     month: "long",
     year: "numeric",

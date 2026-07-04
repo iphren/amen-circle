@@ -11,8 +11,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useTranslations } from "@/components/i18n-provider";
 
 export function EmailLoginConfirm({ token }: { token: string }) {
+  const t = useTranslations();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,12 +30,12 @@ export function EmailLoginConfirm({ token }: { token: string }) {
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error(j.error ?? "This sign-in link is invalid or expired.");
+        throw new Error(j.error ?? t.emailLogin.invalidLink);
       }
       router.push("/dashboard");
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "sign-in failed");
+      setError(e instanceof Error ? e.message : t.auth.errors.signInFailed);
     } finally {
       setBusy(false);
     }
@@ -42,14 +44,12 @@ export function EmailLoginConfirm({ token }: { token: string }) {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Sign in to Amen Circle</CardTitle>
-        <CardDescription>
-          Click below to finish signing in on this device.
-        </CardDescription>
+        <CardTitle>{t.emailLogin.confirmTitle}</CardTitle>
+        <CardDescription>{t.emailLogin.confirmDescription}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <Button onClick={handleSignIn} disabled={busy} className="mt-2">
-          {busy ? "Signing in…" : "Sign in"}
+          {busy ? t.emailLogin.signingIn : t.emailLogin.signIn}
         </Button>
         {error && (
           <>
@@ -60,7 +60,7 @@ export function EmailLoginConfirm({ token }: { token: string }) {
               href="/auth/email-login"
               className="text-center text-sm text-muted-foreground hover:text-foreground"
             >
-              Request a new link
+              {t.common.requestNewLink}
             </Link>
           </>
         )}

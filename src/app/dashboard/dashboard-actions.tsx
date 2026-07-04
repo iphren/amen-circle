@@ -13,8 +13,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { isRoomCode } from "@/lib/room-code";
+import { useTranslations } from "@/components/i18n-provider";
 
 export function DashboardActions() {
+  const t = useTranslations();
   const router = useRouter();
   const [value, setValue] = useState("");
   const [busy, setBusy] = useState<"create" | "join" | null>(null);
@@ -35,12 +37,12 @@ export function DashboardActions() {
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error(j.error ?? "could not create room");
+        throw new Error(j.error ?? t.dashboard.couldNotCreateRoom);
       }
       const room = await res.json();
       router.push(`/rooms/${room.id}`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "failed");
+      setError(e instanceof Error ? e.message : t.common.failed);
     } finally {
       setBusy(null);
     }
@@ -57,12 +59,12 @@ export function DashboardActions() {
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error(j.error ?? "could not join");
+        throw new Error(j.error ?? t.dashboard.couldNotJoin);
       }
       const { roomId } = await res.json();
       router.push(`/rooms/${roomId}`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "failed");
+      setError(e instanceof Error ? e.message : t.common.failed);
     } finally {
       setBusy(null);
     }
@@ -71,21 +73,22 @@ export function DashboardActions() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Start or join a room</CardTitle>
+        <CardTitle className="text-base">
+          {t.dashboard.startOrJoinTitle}
+        </CardTitle>
         <CardDescription>
-          Enter a 6-character code to join someone&apos;s circle, or type a name
-          to start your own.
+          {t.dashboard.startOrJoinDescription}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Label htmlFor="roomInput" className="sr-only">
-            Room code or name
+            {t.dashboard.roomInputLabel}
           </Label>
           <Input
             id="roomInput"
             className="sm:flex-1"
-            placeholder="Room code (e.g. ABC234) or a name…"
+            placeholder={t.dashboard.roomInputPlaceholder}
             value={value}
             onChange={(e) => setValue(e.target.value)}
             autoComplete="off"
@@ -99,7 +102,7 @@ export function DashboardActions() {
               disabled={busy !== null || !looksLikeCode}
               variant={looksLikeCode ? "default" : "outline"}
             >
-              {busy === "join" ? "Joining…" : "Join room"}
+              {busy === "join" ? t.dashboard.joining : t.dashboard.joinRoom}
             </Button>
             <Button
               onClick={createRoom}
@@ -109,16 +112,16 @@ export function DashboardActions() {
                 canCreate ? "bg-green-600 text-white hover:bg-green-700" : undefined
               }
             >
-              {busy === "create" ? "Creating…" : "Create room"}
+              {busy === "create" ? t.dashboard.creating : t.dashboard.createRoom}
             </Button>
           </div>
         </div>
         <p className="text-xs text-muted-foreground">
           {looksLikeCode
-            ? "Looks like a room code — you'll join that room."
+            ? t.dashboard.hintLooksLikeCode
             : trimmed
-              ? "Not a code — you'll create a new room with this name."
-              : "Type a code to join, or a name to create."}
+              ? t.dashboard.hintNotACode
+              : t.dashboard.hintEmpty}
         </p>
         {error && (
           <p className="text-sm text-destructive" role="alert">

@@ -3,8 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "@/components/i18n-provider";
 
 export function LogoutButton() {
+  const t = useTranslations();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -21,7 +23,7 @@ export function LogoutButton() {
         })
       }
     >
-      {pending ? "Signing out…" : "Sign out"}
+      {pending ? t.nav.signingOut : t.nav.signOut}
     </Button>
   );
 }

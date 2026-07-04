@@ -8,6 +8,7 @@ import {
 } from "@/lib/recovery-token";
 import { sendLoginLinkEmail } from "@/lib/email";
 import { origin } from "@/lib/webauthn";
+import { resolveLocale } from "@/lib/i18n/config";
 
 interface LoginEmailStartBody {
   email?: string;
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, email: true },
+    select: { id: true, email: true, preferredLanguage: true },
   });
   if (!user) return genericOk;
 
@@ -64,7 +65,11 @@ export async function POST(req: Request) {
 
   const loginUrl = `${origin}/auth/email-login?token=${encodeURIComponent(raw)}`;
   try {
-    await sendLoginLinkEmail({ to: user.email, loginUrl });
+    await sendLoginLinkEmail({
+      to: user.email,
+      loginUrl,
+      locale: resolveLocale(user.preferredLanguage),
+    });
   } catch (err) {
     // Don't surface send failures to the caller (would leak account existence
     // and isn't actionable for them). Log for operators.

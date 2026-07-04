@@ -7,14 +7,16 @@ import { LogoutButton } from "@/components/logout-button";
 import { NavLinks } from "@/components/nav-links";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/components/i18n-provider";
 
 export function MobileMenu({ displayName }: { displayName: string }) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger
-        aria-label="Open menu"
+        aria-label={t.nav.openMenu}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-lg" }))}
       >
         <Menu />
@@ -34,7 +36,7 @@ export function MobileMenu({ displayName }: { displayName: string }) {
               {displayName}
             </Dialog.Title>
             <Dialog.Close
-              aria-label="Close menu"
+              aria-label={t.nav.closeMenu}
               className={cn(
                 buttonVariants({ variant: "ghost", size: "icon" }),
                 "shrink-0",

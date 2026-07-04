@@ -12,8 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useTranslations } from "@/components/i18n-provider";
 
 export function RecoverEnroll({ token }: { token: string }) {
+  const t = useTranslations();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +31,7 @@ export function RecoverEnroll({ token }: { token: string }) {
       });
       if (!verifyRes.ok) {
         const j = await verifyRes.json().catch(() => ({}));
-        throw new Error(j.error ?? "This recovery link is invalid or expired.");
+        throw new Error(j.error ?? t.recover.invalidLink);
       }
       const options = await verifyRes.json();
       const attResp = await startRegistration({ optionsJSON: options });
@@ -40,12 +42,12 @@ export function RecoverEnroll({ token }: { token: string }) {
       });
       if (!finishRes.ok) {
         const j = await finishRes.json().catch(() => ({}));
-        throw new Error(j.error ?? "could not set up your new passkey");
+        throw new Error(j.error ?? t.recover.couldNotSetup);
       }
       router.push("/dashboard");
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "recovery failed");
+      setError(e instanceof Error ? e.message : t.recover.recoveryFailed);
     } finally {
       setBusy(false);
     }
@@ -54,15 +56,12 @@ export function RecoverEnroll({ token }: { token: string }) {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Set up a new passkey</CardTitle>
-        <CardDescription>
-          This finishes recovering your account. Your old passkeys will be
-          removed and replaced with a new one on this device.
-        </CardDescription>
+        <CardTitle>{t.recover.enrollTitle}</CardTitle>
+        <CardDescription>{t.recover.enrollDescription}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <Button onClick={handleRecover} disabled={busy} className="mt-2">
-          {busy ? "Setting up…" : "Create new passkey"}
+          {busy ? t.recover.settingUp : t.recover.createNewPasskey}
         </Button>
         {error && (
           <>
@@ -73,7 +72,7 @@ export function RecoverEnroll({ token }: { token: string }) {
               href="/auth/recover"
               className="text-center text-sm text-muted-foreground hover:text-foreground"
             >
-              Request a new link
+              {t.common.requestNewLink}
             </Link>
           </>
         )}

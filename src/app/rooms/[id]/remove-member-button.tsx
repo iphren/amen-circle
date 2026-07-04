@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
+import { useTranslations } from "@/components/i18n-provider";
+import { interpolate } from "@/lib/i18n/interpolate";
 
 export function RemoveMemberButton({
   roomId,
@@ -14,16 +16,16 @@ export function RemoveMemberButton({
   userId: string;
   displayName: string;
 }) {
+  const t = useTranslations();
   const router = useRouter();
   const { confirm, dialog } = useConfirm();
   const [busy, setBusy] = useState(false);
 
   async function handleRemove() {
     const ok = await confirm({
-      title: `Remove ${displayName}?`,
-      description:
-        "They will be removed from this circle and the request they shared here will be deleted.",
-      confirmText: "Remove",
+      title: interpolate(t.room.removeConfirmTitle, { name: displayName }),
+      description: t.room.removeConfirmDescription,
+      confirmText: t.room.removeConfirmText,
       destructive: true,
     });
     if (!ok) return;
@@ -36,14 +38,14 @@ export function RemoveMemberButton({
       );
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error(j.error ?? "could not remove member");
+        throw new Error(j.error ?? t.room.couldNotRemoveMember);
       }
       router.refresh();
     } catch (e) {
       // Surface via alert — this sits in a dense list with no room for
       // per-row error text.
       window.alert(
-        e instanceof Error ? e.message : "could not remove member",
+        e instanceof Error ? e.message : t.room.couldNotRemoveMember,
       );
     } finally {
       setBusy(false);
@@ -59,7 +61,7 @@ export function RemoveMemberButton({
         disabled={busy}
         onClick={handleRemove}
       >
-        {busy ? "…" : "Remove"}
+        {busy ? "…" : t.room.remove}
       </Button>
       {dialog}
     </>

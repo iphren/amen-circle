@@ -1,5 +1,8 @@
 "use client";
 
+import { Inline } from "@/components/inline-md";
+import { useTranslations } from "@/components/i18n-provider";
+
 // The two consent checkboxes required before an account can process prayer
 // content. Kept separate on purpose: UK GDPR explicit consent (Art. 9(2)(a))
 // for religious data must be unbundled from terms acceptance. Shared by the
@@ -17,6 +20,7 @@ export function ConsentCheckboxes({
   consentReligiousData: boolean;
   onConsentReligiousDataChange: (value: boolean) => void;
 }) {
+  const t = useTranslations();
   return (
     <div className="flex flex-col gap-3">
       <label
@@ -31,25 +35,7 @@ export function ConsentCheckboxes({
           onChange={(e) => onAcceptTermsChange(e.target.checked)}
         />
         <span>
-          I am <strong>18 or older</strong> and accept the{" "}
-          <a
-            href="/terms"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
-          >
-            Terms
-          </a>{" "}
-          and{" "}
-          <a
-            href="/privacy"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
-          >
-            Privacy Policy
-          </a>
-          .
+          <Inline text={t.consent.terms} />
         </span>
       </label>
 
@@ -64,11 +50,7 @@ export function ConsentCheckboxes({
           checked={consentReligiousData}
           onChange={(e) => onConsentReligiousDataChange(e.target.checked)}
         />
-        <span>
-          I explicitly consent to Amen Circle storing and processing the
-          prayer requests I write, which may reveal my religious beliefs. I
-          can withdraw this at any time by deleting my requests or my account.
-        </span>
+        <span>{t.consent.religious}</span>
       </label>
     </div>
   );

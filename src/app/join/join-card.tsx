@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useTranslations } from "@/components/i18n-provider";
 
 export function JoinCard({
   code,
@@ -19,6 +20,7 @@ export function JoinCard({
   code: string;
   signedIn: boolean;
 }) {
+  const t = useTranslations();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,12 +36,12 @@ export function JoinCard({
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error(j.error ?? "could not join");
+        throw new Error(j.error ?? t.join.couldNotJoin);
       }
       const { roomId } = await res.json();
       router.push(`/rooms/${roomId}`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "failed");
+      setError(e instanceof Error ? e.message : t.common.failed);
       setBusy(false);
     }
   }
@@ -49,16 +51,16 @@ export function JoinCard({
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Join a room</CardTitle>
+        <CardTitle>{t.join.title}</CardTitle>
         <CardDescription>
-          {signedIn
-            ? "You've been invited to this prayer circle."
-            : "Sign in to join this prayer circle."}
+          {signedIn ? t.join.invitedDescription : t.join.signInDescription}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex flex-col items-center gap-1 rounded-lg border py-6">
-          <span className="text-xs text-muted-foreground">Room code</span>
+          <span className="text-xs text-muted-foreground">
+            {t.join.roomCodeLabel}
+          </span>
           <code className="font-mono text-2xl font-semibold tracking-widest">
             {code}
           </code>
@@ -66,7 +68,7 @@ export function JoinCard({
 
         {signedIn ? (
           <Button onClick={joinRoom} disabled={busy}>
-            {busy ? "Joining…" : "Join room"}
+            {busy ? t.join.joining : t.join.joinRoom}
           </Button>
         ) : (
           <div className="flex flex-col gap-2">
@@ -74,13 +76,13 @@ export function JoinCard({
               href={`/auth?next=${encodeURIComponent(next)}`}
               className={buttonVariants()}
             >
-              Sign in to join
+              {t.join.signInToJoin}
             </Link>
             <Link
               href={`/auth?mode=register&next=${encodeURIComponent(next)}`}
               className={buttonVariants({ variant: "outline" })}
             >
-              New here? Register
+              {t.join.newHereRegister}
             </Link>
           </div>
         )}

@@ -3,10 +3,13 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/current-user";
 import { safeInternalPath } from "@/lib/utils";
 import { PasskeyForm } from "@/app/auth/passkey-form";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
-export const metadata: Metadata = {
-  title: "Sign in",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return { title: t.metadata.signInTitle };
+}
 
 export default async function AuthPage({
   searchParams,

@@ -8,6 +8,7 @@ import {
 } from "@/lib/recovery-token";
 import { sendRecoveryEmail } from "@/lib/email";
 import { origin } from "@/lib/webauthn";
+import { resolveLocale } from "@/lib/i18n/config";
 
 interface RecoverStartBody {
   email?: string;
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, email: true },
+    select: { id: true, email: true, preferredLanguage: true },
   });
   if (!user) return genericOk;
 
@@ -62,7 +63,11 @@ export async function POST(req: Request) {
 
   const recoverUrl = `${origin}/auth/recover?token=${encodeURIComponent(raw)}`;
   try {
-    await sendRecoveryEmail({ to: user.email, recoverUrl });
+    await sendRecoveryEmail({
+      to: user.email,
+      recoverUrl,
+      locale: resolveLocale(user.preferredLanguage),
+    });
   } catch (err) {
     // Don't surface send failures to the caller (would leak account existence
     // and isn't actionable for them). Log for operators.

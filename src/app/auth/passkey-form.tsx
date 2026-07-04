@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ConsentCheckboxes } from "@/components/consent-checkboxes";
+import { useTranslations } from "@/components/i18n-provider";
 
 type Mode = "login" | "register";
 
@@ -28,6 +29,7 @@ export function PasskeyForm({
   initialMode: Mode;
   next?: string;
 }) {
+  const t = useTranslations();
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
@@ -53,7 +55,7 @@ export function PasskeyForm({
       });
       if (!optsRes.ok) {
         const j = await optsRes.json().catch(() => ({}));
-        throw new Error(j.error ?? "could not start registration");
+        throw new Error(j.error ?? t.auth.errors.couldNotStartRegistration);
       }
       const options = await optsRes.json();
       const attResp = await startRegistration({ optionsJSON: options });
@@ -64,12 +66,12 @@ export function PasskeyForm({
       });
       if (!verifyRes.ok) {
         const j = await verifyRes.json().catch(() => ({}));
-        throw new Error(j.error ?? "registration verification failed");
+        throw new Error(j.error ?? t.auth.errors.registrationVerificationFailed);
       }
       router.push(next);
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "registration failed");
+      setError(e instanceof Error ? e.message : t.auth.errors.registrationFailed);
     } finally {
       setBusy(false);
     }
@@ -80,7 +82,7 @@ export function PasskeyForm({
     setError(null);
     try {
       const optsRes = await fetch("/api/auth/login/start", { method: "POST" });
-      if (!optsRes.ok) throw new Error("could not start sign-in");
+      if (!optsRes.ok) throw new Error(t.auth.errors.couldNotStartSignIn);
       const options = await optsRes.json();
       const authResp = await startAuthentication({ optionsJSON: options });
       const verifyRes = await fetch("/api/auth/login/finish", {
@@ -90,12 +92,12 @@ export function PasskeyForm({
       });
       if (!verifyRes.ok) {
         const j = await verifyRes.json().catch(() => ({}));
-        throw new Error(j.error ?? "sign-in failed");
+        throw new Error(j.error ?? t.auth.errors.signInFailed);
       }
       router.push(next);
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "sign-in failed");
+      setError(e instanceof Error ? e.message : t.auth.errors.signInFailed);
     } finally {
       setBusy(false);
     }
@@ -111,35 +113,35 @@ export function PasskeyForm({
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>
-          {mode === "register" ? "Create your passkey" : "Sign in with passkey"}
+          {mode === "register" ? t.auth.createTitle : t.auth.signInTitle}
         </CardTitle>
         <CardDescription>
           {mode === "register"
-            ? "We'll save a passkey on this device — no password needed."
-            : "Pick the passkey for the account you want to use."}
+            ? t.auth.createDescription
+            : t.auth.signInDescription}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {mode === "register" ? (
           <>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t.common.emailLabel}</Label>
               <Input
                 id="email"
                 type="email"
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder={t.common.emailPlaceholder}
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="displayName">Display name</Label>
+              <Label htmlFor="displayName">{t.auth.displayNameLabel}</Label>
               <Input
                 id="displayName"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="How others will see you"
+                placeholder={t.auth.displayNamePlaceholder}
               />
             </div>
             <ConsentCheckboxes
@@ -154,12 +156,12 @@ export function PasskeyForm({
               disabled={busy || !canRegister}
               className="mt-2"
             >
-              {busy ? "Creating passkey…" : "Create passkey"}
+              {busy ? t.auth.creatingPasskey : t.auth.createPasskey}
             </Button>
           </>
         ) : (
           <Button onClick={handleLogin} disabled={busy} className="mt-2">
-            {busy ? "Waiting for passkey…" : "Continue with passkey"}
+            {busy ? t.auth.waitingForPasskey : t.auth.continueWithPasskey}
           </Button>
         )}
 
@@ -177,9 +179,7 @@ export function PasskeyForm({
             setMode(mode === "register" ? "login" : "register");
           }}
         >
-          {mode === "register"
-            ? "Have an account? Sign in"
-            : "New here? Register"}
+          {mode === "register" ? t.auth.haveAccount : t.auth.newHere}
         </button>
 
         {mode === "login" && (
@@ -188,13 +188,13 @@ export function PasskeyForm({
               href="/auth/email-login"
               className="text-center text-sm text-muted-foreground hover:text-foreground"
             >
-              Trouble with your passkey? Email me a sign-in link
+              {t.auth.troublePasskey}
             </Link>
             <Link
               href="/auth/recover"
               className="text-center text-sm text-muted-foreground hover:text-foreground"
             >
-              Lost your device?
+              {t.auth.lostDevice}
             </Link>
           </>
         )}

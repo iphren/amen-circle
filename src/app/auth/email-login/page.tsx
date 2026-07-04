@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import { EmailLoginForm } from "@/app/auth/email-login/email-login-form";
 import { EmailLoginConfirm } from "@/app/auth/email-login/email-login-confirm";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
-export const metadata: Metadata = {
-  title: "Sign in with email",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return { title: t.metadata.emailLoginTitle };
+}
 
 export default async function EmailLoginPage({
   searchParams,

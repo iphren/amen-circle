@@ -26,6 +26,11 @@ model User {
   religiousDataConsentAt DateTime?
   ageConfirmedAt         DateTime?
 
+  // Preferred UI language (e.g. "en-GB", "zh-CN). Null means "not set" — the
+  // app then detects from the browser. Stored here so the choice syncs across
+  // the user's devices.
+  preferredLanguage String?
+
   passkeys         Passkey[]
   recoveryTokens   RecoveryToken[]
   loginTokens      LoginToken[]

@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useConfirm } from "@/components/ui/confirm-dialog";
+import { useTranslations } from "@/components/i18n-provider";
 
 // Purple styling for the "close & assign" action, so it reads as distinct from
 // the red destructive "cancel room" button. Shared by the card button and the
@@ -42,6 +43,7 @@ export function RoomClient({
   requestsCount,
   membersCount,
 }: Props) {
+  const t = useTranslations();
   const router = useRouter();
   const { confirm, dialog } = useConfirm();
   const [content, setContent] = useState(existingContent ?? "");
@@ -95,12 +97,12 @@ export function RoomClient({
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error(j.error ?? "could not submit");
+        throw new Error(j.error ?? t.room.couldNotSubmit);
       }
-      setOkMsg(hasExisting ? "Updated." : "Submitted.");
+      setOkMsg(hasExisting ? t.room.updated : t.room.submittedMsg);
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "failed");
+      setError(e instanceof Error ? e.message : t.common.failed);
     } finally {
       setBusy(null);
     }
@@ -108,11 +110,10 @@ export function RoomClient({
 
   async function closeRoom() {
     const ok = await confirm({
-      title: "Close room & assign?",
-      description:
-        "Requests will be shuffled and assigned now — this can't be undone.",
-      confirmText: "Close & assign",
-      cancelText: "Not yet",
+      title: t.room.closeConfirmTitle,
+      description: t.room.closeConfirmDescription,
+      confirmText: t.room.closeConfirmText,
+      cancelText: t.room.closeCancelText,
       confirmClassName: closeButtonClass,
     });
     if (!ok) return;
@@ -122,11 +123,11 @@ export function RoomClient({
       const res = await fetch(`/api/rooms/${roomId}/close`, { method: "POST" });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error(j.error ?? "could not close room");
+        throw new Error(j.error ?? t.room.couldNotCloseRoom);
       }
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "failed");
+      setError(e instanceof Error ? e.message : t.common.failed);
     } finally {
       setBusy(null);
     }
@@ -136,15 +137,12 @@ export function RoomClient({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Room is closed</CardTitle>
-          <CardDescription>
-            Requests have been assigned. Head over to your prayers to see who
-            you&apos;re lifting up.
-          </CardDescription>
+          <CardTitle className="text-base">{t.room.closedTitle}</CardTitle>
+          <CardDescription>{t.room.closedDescription}</CardDescription>
         </CardHeader>
         <CardContent>
           <a href="/my-prayers" className={buttonVariants()}>
-            Go to my prayers
+            {t.room.goToMyPrayers}
           </a>
         </CardContent>
       </Card>
@@ -159,17 +157,17 @@ export function RoomClient({
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Your prayer request</CardTitle>
+          <CardTitle className="text-base">{t.room.yourRequestTitle}</CardTitle>
           <CardDescription>
             {hasExisting
-              ? "You can update this at any time before the room is closed."
-              : "Share what's on your heart. You can update it later if needed."}
+              ? t.room.yourRequestUpdateDescription
+              : t.room.yourRequestNewDescription}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="content" className="sr-only">
-              Request
+              {t.room.requestLabel}
             </Label>
             <Textarea
               id="content"
@@ -178,18 +176,18 @@ export function RoomClient({
               onChange={(e) => setContent(e.target.value)}
               placeholder={
                 existingIsConfidential && hasExisting
-                  ? "(Your previous request is confidential and not shown here. Type to replace it.)"
-                  : "Type your prayer request…"
+                  ? t.room.confidentialRequestPlaceholder
+                  : t.room.requestPlaceholder
               }
             />
           </div>
           <div className="flex items-center justify-between gap-4 rounded-md border px-3 py-2">
             <div>
               <Label htmlFor="confidential" className="text-sm">
-                Confidential
+                {t.room.confidentialLabel}
               </Label>
               <p className="text-xs text-muted-foreground">
-                Encrypts your request so the assignee must tap to reveal it.
+                {t.room.confidentialHint}
               </p>
             </div>
             <Switch
@@ -200,10 +198,10 @@ export function RoomClient({
           </div>
           <Button onClick={submit} disabled={!canSubmit}>
             {busy === "submit"
-              ? "Saving…"
+              ? t.room.saving
               : hasExisting
-                ? "Update request"
-                : "Submit request"}
+                ? t.room.updateRequest
+                : t.room.submitRequest}
           </Button>
           {okMsg && <p className="text-sm text-emerald-700">{okMsg}</p>}
           {error && (
@@ -217,11 +215,8 @@ export function RoomClient({
       {isOwner && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Close room & assign</CardTitle>
-            <CardDescription>
-              When everyone&apos;s ready, shuffle the requests and assign each
-              one to someone other than its author.
-            </CardDescription>
+            <CardTitle className="text-base">{t.room.closeTitle}</CardTitle>
+            <CardDescription>{t.room.closeDescription}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
             <Button
@@ -229,16 +224,16 @@ export function RoomClient({
               disabled={!canClose}
               className={closeButtonClass}
             >
-              {busy === "close" ? "Closing…" : "Close room & assign"}
+              {busy === "close" ? t.room.closing : t.room.closeAction}
             </Button>
             {membersCount < 2 && (
               <p className="text-xs text-muted-foreground">
-                Need at least 2 members to assign.
+                {t.room.needTwoMembers}
               </p>
             )}
             {requestsCount === 0 && (
               <p className="text-xs text-muted-foreground">
-                No requests submitted yet.
+                {t.room.noRequestsYet}
               </p>
             )}
           </CardContent>
