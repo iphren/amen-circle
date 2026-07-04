@@ -16,7 +16,6 @@ export default async function SettingsPage() {
     select: {
       id: true,
       deviceType: true,
-      backedUp: true,
       name: true,
       createdAt: true,
     },
@@ -36,7 +35,6 @@ export default async function SettingsPage() {
             initialPasskeys={passkeys.map((p) => ({
               id: p.id,
               deviceType: p.deviceType,
-              backedUp: p.backedUp,
               name: p.name,
               createdAt: p.createdAt.toISOString(),
             }))}

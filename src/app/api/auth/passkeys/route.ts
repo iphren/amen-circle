@@ -12,7 +12,6 @@ export async function GET() {
     select: {
       id: true,
       deviceType: true,
-      backedUp: true,
       name: true,
       createdAt: true,
     },

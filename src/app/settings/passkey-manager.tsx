@@ -17,7 +17,6 @@ import { formatDate } from "@/lib/utils";
 interface Passkey {
   id: string;
   deviceType: string;
-  backedUp: boolean;
   name: string | null;
   createdAt: string;
 }
@@ -184,11 +183,6 @@ export function PasskeyManager({
                   <div className="min-w-0 text-sm">
                     <p className="truncate font-medium">
                       {passkeyLabel(pk)}
-                      {pk.backedUp && (
-                        <span className="ml-2 text-xs text-emerald-700">
-                          backed up
-                        </span>
-                      )}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Added {formatDate(pk.createdAt)}
