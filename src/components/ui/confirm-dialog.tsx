@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { AlertDialog } from "@base-ui/react/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "@/components/i18n-provider";
 import { cn } from "@/lib/utils";
 
 export interface ConfirmOptions {
@@ -25,6 +26,7 @@ export interface ConfirmOptions {
  *   // in a handler: if (!(await confirm({ title: "…" }))) return;
  */
 export function useConfirm() {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [opts, setOpts] = useState<ConfirmOptions | null>(null);
   const resolver = useRef<((value: boolean) => void) | null>(null);
@@ -65,7 +67,7 @@ export function useConfirm() {
           )}
           <div className="mt-5 flex justify-end gap-2">
             <Button variant="outline" size="sm" onClick={() => settle(false)}>
-              {opts?.cancelText ?? "Cancel"}
+              {opts?.cancelText ?? t.common.cancel}
             </Button>
             <Button
               variant={opts?.destructive ? "destructive" : "default"}
@@ -73,7 +75,7 @@ export function useConfirm() {
               className={cn(opts?.confirmClassName)}
               onClick={() => settle(true)}
             >
-              {opts?.confirmText ?? "Confirm"}
+              {opts?.confirmText ?? t.common.confirm}
             </Button>
           </div>
         </AlertDialog.Popup>

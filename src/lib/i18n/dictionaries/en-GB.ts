@@ -16,6 +16,8 @@ export const enGB = {
     emailPlaceholder: "you@example.com",
     genericError: "Something went wrong.",
     failed: "failed",
+    cancel: "Cancel",
+    confirm: "Confirm",
   },
 
   metadata: {

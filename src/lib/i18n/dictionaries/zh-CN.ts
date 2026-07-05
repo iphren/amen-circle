@@ -15,6 +15,8 @@ export const zhCN: DeepPartial<Dictionary> = {
     emailPlaceholder: "you@example.com",
     genericError: "出了点问题。",
     failed: "失败",
+    cancel: "取消",
+    confirm: "确认",
   },
 
   metadata: {
