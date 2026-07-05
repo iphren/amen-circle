@@ -194,6 +194,7 @@ export const zhCN: DeepPartial<Dictionary> = {
     report: "举报",
     reportSubject: "举报内容：代祷事项 {id}",
     delete: "删除",
+    moreActions: "更多操作",
     undo: "撤销",
     deleteConfirmTitle: "删除这个代祷事项？",
     deleteConfirmDescription:

@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { Menu } from "@base-ui/react/menu";
+import { MoreHorizontal, Trash2 } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useTranslations } from "@/components/i18n-provider";
+import { cn } from "@/lib/utils";
 
 export function SentRequestActions({
   id,
@@ -95,15 +98,31 @@ export function SentRequestActions({
             {t.myPrayers.prayerAnswered}
           </Button>
         )}
-        <Button
-          variant="destructive"
-          size="sm"
-          className="ml-auto"
-          disabled={busy}
-          onClick={handleDelete}
-        >
-          {t.myPrayers.delete}
-        </Button>
+        <Menu.Root>
+          <Menu.Trigger
+            aria-label={t.myPrayers.moreActions}
+            disabled={busy}
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "icon-sm" }),
+              "ml-auto",
+            )}
+          >
+            <MoreHorizontal />
+          </Menu.Trigger>
+          <Menu.Portal>
+            <Menu.Positioner sideOffset={4} align="end" className="z-50">
+              <Menu.Popup className="min-w-36 rounded-lg border bg-background p-1 shadow-lg outline-none transition-all duration-150 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
+                <Menu.Item
+                  onClick={handleDelete}
+                  className="flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm text-destructive outline-none select-none data-[highlighted]:bg-destructive/10"
+                >
+                  <Trash2 className="size-4" />
+                  {t.myPrayers.delete}
+                </Menu.Item>
+              </Menu.Popup>
+            </Menu.Positioner>
+          </Menu.Portal>
+        </Menu.Root>
       </div>
       {error && (
         <p className="text-sm text-destructive" role="alert">

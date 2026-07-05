@@ -205,6 +205,7 @@ export const enGB = {
     // {id} interpolated
     reportSubject: "Report content — request {id}",
     delete: "Delete",
+    moreActions: "More actions",
     undo: "Undo",
     deleteConfirmTitle: "Delete this prayer request?",
     deleteConfirmDescription:
