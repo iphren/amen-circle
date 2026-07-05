@@ -55,6 +55,12 @@ export const zhCN: DeepPartial<Dictionary> = {
   landing: {
     register: "注册",
     signIn: "登录",
+    prayerRulesTitle: "祷告规则",
+    prayerRules: [
+      "邀请你信任、愿意彼此守望的人。",
+      "每人写下一件这次想被代祷的事项。",
+      "大家都写完后，每个代祷事项会交给另一位成员守望。",
+    ],
   },
 
   auth: {

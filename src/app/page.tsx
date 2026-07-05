@@ -30,6 +30,22 @@ export default async function Home() {
             {t.landing.signIn}
           </Link>
         </div>
+
+        <section className="mt-10 text-left">
+          <h2 className="text-sm font-semibold tracking-tight">
+            {t.landing.prayerRulesTitle}
+          </h2>
+          <ol className="mt-3 space-y-3 text-sm leading-relaxed text-muted-foreground">
+            {t.landing.prayerRules.map((rule, index) => (
+              <li key={rule} className="flex gap-3">
+                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border text-xs font-medium text-foreground">
+                  {index + 1}
+                </span>
+                <span>{rule}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
       </div>
     </main>
   );
