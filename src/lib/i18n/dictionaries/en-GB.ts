@@ -259,11 +259,11 @@ export const enGB = {
     updated: "Updated.",
     submittedMsg: "Submitted.",
     couldNotSubmit: "could not submit",
-    closeTitle: "Close room & assign",
+    closeTitle: "Prayer assignment",
     closeDescription:
       "When everyone's ready, shuffle the requests and assign each one to someone other than its author.",
     closing: "Closing…",
-    closeAction: "Close room & assign",
+    closeAction: "Close room",
     needTwoMembers: "Need at least 2 members to assign.",
     noRequestsYet: "No requests submitted yet.",
     closeConfirmTitle: "Close room & assign?",

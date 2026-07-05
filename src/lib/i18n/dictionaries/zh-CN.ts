@@ -244,11 +244,11 @@ export const zhCN: DeepPartial<Dictionary> = {
     updated: "已更新。",
     submittedMsg: "已提交。",
     couldNotSubmit: "无法提交",
-    closeTitle: "关闭房间并开始分配代祷",
+    closeTitle: "分配代祷",
     closeDescription:
       "关闭房间后，系统会把每个代祷事项分给另一位成员。",
     closing: "正在关闭…",
-    closeAction: "关闭房间并开始分配代祷",
+    closeAction: "关闭房间",
     needTwoMembers: "至少需要 2 位成员才能分配。",
     noRequestsYet: "还没有提交代祷事项。",
     closeConfirmTitle: "关闭房间并开始分配代祷？",
