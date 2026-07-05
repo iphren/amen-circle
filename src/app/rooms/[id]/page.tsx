@@ -164,7 +164,7 @@ export default async function RoomPage({
                             {t.room.you}
                           </span>
                         )}
-                        {m.id === room.ownerId && !isOwner && (
+                        {m.id === room.ownerId && !(isOwner && isOpen) && (
                           <span className="ml-1 text-xs text-muted-foreground">
                             {t.room.ownerTag}
                           </span>
@@ -181,7 +181,8 @@ export default async function RoomPage({
                           {m.hasSubmitted ? t.room.submitted : t.room.waiting}
                         </span>
                         {m.id === room.ownerId
-                          ? isOwner && (
+                          ? isOwner &&
+                            isOpen && (
                               <Button
                                 variant="ghost"
                                 size="sm"
