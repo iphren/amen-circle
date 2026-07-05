@@ -16,6 +16,7 @@ import { RoomClient } from "@/app/rooms/[id]/room-client";
 import { RoomActions } from "@/app/rooms/[id]/room-actions";
 import { ShareButton } from "@/app/rooms/[id]/share-button";
 import { RoomStatusChip } from "@/components/room-status-chip";
+import { Button } from "@/components/ui/button";
 import { RemoveMemberButton } from "@/app/rooms/[id]/remove-member-button";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -163,7 +164,7 @@ export default async function RoomPage({
                             {t.room.you}
                           </span>
                         )}
-                        {m.id === room.ownerId && (
+                        {m.id === room.ownerId && !isOwner && (
                           <span className="ml-1 text-xs text-muted-foreground">
                             {t.room.ownerTag}
                           </span>
@@ -179,13 +180,25 @@ export default async function RoomPage({
                         >
                           {m.hasSubmitted ? t.room.submitted : t.room.waiting}
                         </span>
-                        {isOwner && isOpen && m.id !== user.id && (
-                          <RemoveMemberButton
-                            roomId={room.id}
-                            userId={m.id}
-                            displayName={m.displayName}
-                          />
-                        )}
+                        {m.id === room.ownerId
+                          ? isOwner && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-xs text-muted-foreground"
+                                disabled
+                              >
+                                {t.room.ownerLabel}
+                              </Button>
+                            )
+                          : isOwner &&
+                            isOpen && (
+                              <RemoveMemberButton
+                                roomId={room.id}
+                                userId={m.id}
+                                displayName={m.displayName}
+                              />
+                            )}
                       </span>
                     </li>
                   ))}

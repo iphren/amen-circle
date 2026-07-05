@@ -214,6 +214,7 @@ export const zhCN: DeepPartial<Dictionary> = {
     ownerTag: "· 房主",
     submitted: "✓ 已提交",
     waiting: "等待中",
+    ownerLabel: "房主",
     remove: "移除",
     removeConfirmTitle: "移除 {name}？",
     removeConfirmDescription:

@@ -227,6 +227,7 @@ export const enGB = {
     ownerTag: "· owner",
     submitted: "✓ submitted",
     waiting: "waiting",
+    ownerLabel: "Owner",
     remove: "Remove",
     // {name} interpolated
     removeConfirmTitle: "Remove {name}?",
