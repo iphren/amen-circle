@@ -30,9 +30,9 @@ export function formatDate(date: Date | string, locale = "en-GB") {
 const NAME_COLORS = [
   "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
   "bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300",
-  "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
+  "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300",
   "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300",
-  "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-950 dark:text-fuchsia-300",
   "bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300",
 ]
 
