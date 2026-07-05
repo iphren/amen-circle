@@ -126,7 +126,7 @@ export default async function RoomPage({
           </div>
         </div>
 
-        <div className="mt-8 grid gap-6 md:grid-cols-[1fr_280px]">
+        <div className="mt-8 grid gap-6 md:grid-cols-[2fr_1fr]">
           <RoomClient
             roomId={room.id}
             isOwner={isOwner}
