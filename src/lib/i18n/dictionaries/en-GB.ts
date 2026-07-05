@@ -22,7 +22,7 @@ export const enGB = {
     defaultTitle: "Amen Circle",
     titleTemplate: "%s · Amen Circle",
     description:
-      "Create prayer rooms with trusted friends, share requests, and pray for one another. Requests are encrypted and privately assigned. Give all glory to God.",
+      "Create prayer rooms with friends, share requests, and pray for one another. Requests are encrypted and privately assigned. Give all glory to God.",
     signInTitle: "Sign in",
     emailLoginTitle: "Sign in with email",
     recoverTitle: "Recover account",
