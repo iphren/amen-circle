@@ -248,7 +248,7 @@ export const enGB = {
       "(Your previous request is confidential and not shown here. Type to replace it.)",
     confidentialLabel: "Confidential",
     confidentialHint:
-      "Encrypts your request so the assignee must tap to reveal it.",
+      "Ask the person who receives this request to keep it confidential; the content is hidden until they tap to reveal it.",
     saving: "Saving…",
     updateRequest: "Update request",
     submitRequest: "Submit request",

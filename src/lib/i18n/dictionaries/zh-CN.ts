@@ -233,7 +233,7 @@ export const zhCN: DeepPartial<Dictionary> = {
       "（你之前的代祷事项是保密的，这里不会显示。输入新内容即可替换。）",
     confidentialLabel: "保密",
     confidentialHint:
-      "加密保存此事项，分配到的人需要点按才会显示。",
+      "请收到这项代祷的人为你保密；内容默认隐藏，点击后才会显示。",
     saving: "正在保存…",
     updateRequest: "更新代祷事项",
     submitRequest: "提交代祷事项",
