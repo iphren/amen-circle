@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye } from "lucide-react";
 import { useTranslations } from "@/components/i18n-provider";
 
 interface Props {
