@@ -33,8 +33,17 @@ export function RevealableContent({ content, isConfidential }: Props) {
         revealed ? t.room.hideConfidential : t.room.revealConfidential
       }
       aria-pressed={revealed}
-      className="group relative block min-h-16 w-full cursor-pointer overflow-hidden rounded-md text-left"
+      className="group relative block w-full cursor-pointer overflow-hidden rounded-md pt-7 px-2 text-left"
     >
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-5"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(45deg, rgb(245 158 11 / 0.18) 0, rgb(245 158 11 / 0.18) 6px, transparent 6px, transparent 12px), linear-gradient(135deg, rgb(239 68 68 / 0.14), rgb(245 158 11 / 0.10))",
+        }}
+      />
+
       <p
         aria-hidden={!revealed}
         className={`whitespace-pre-wrap text-sm leading-relaxed ${
@@ -44,11 +53,7 @@ export function RevealableContent({ content, isConfidential }: Props) {
         {content}
       </p>
 
-      {revealed ? (
-        <span className="pointer-events-none absolute top-0 right-0 inline-flex items-center gap-1 rounded-md bg-background/80 px-1.5 py-0.5 text-xs text-muted-foreground transition group-hover:text-foreground">
-          <EyeOff className="size-3" /> {t.room.hide}
-        </span>
-      ) : (
+      {revealed || (
         <span
           className="absolute inset-0 flex items-center justify-center bg-muted"
           style={{
