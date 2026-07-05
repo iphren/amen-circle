@@ -21,7 +21,7 @@ export const zhCN: DeepPartial<Dictionary> = {
     defaultTitle: "同心圆",
     titleTemplate: "%s · 同心圆",
     description:
-      "同心祷告，彼此守望。通行密钥登录；保密代祷事项会加密保存。",
+      "同心祷告，彼此守望。同心圆能够帮助你创建祷告房间，分享代祷事项，并彼此代祷。祷告的内容会被加密保存，只有分配到的人才能看到。每人只会知道自己要为谁代祷，而不会知道谁在为自己祷告。将一切荣耀归于神。",
     signInTitle: "登录",
     emailLoginTitle: "使用邮箱登录",
     recoverTitle: "找回账号",
