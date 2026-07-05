@@ -287,7 +287,7 @@ export const enGB = {
     revealConfidential: "Reveal confidential message",
     hideConfidential: "Hide confidential message",
     hide: "Hide",
-    tapToReveal: "Tap to reveal confidential message",
+    tapToReveal: "Tap to reveal message",
   },
 
   roomStatus: {

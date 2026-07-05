@@ -33,7 +33,7 @@ export function RevealableContent({ content, isConfidential }: Props) {
         revealed ? t.room.hideConfidential : t.room.revealConfidential
       }
       aria-pressed={revealed}
-      className="group relative block w-full cursor-pointer overflow-hidden rounded-md text-left"
+      className="group relative block min-h-16 w-full cursor-pointer overflow-hidden rounded-md text-left"
     >
       <p
         aria-hidden={!revealed}
