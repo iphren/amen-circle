@@ -272,7 +272,7 @@ export const zhCN: DeepPartial<Dictionary> = {
     revealConfidential: "显示保密内容",
     hideConfidential: "隐藏保密内容",
     hide: "隐藏",
-    tapToReveal: "点按显示保密内容",
+    tapToReveal: "显示保密内容",
   },
 
   roomStatus: {
