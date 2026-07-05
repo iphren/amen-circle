@@ -253,7 +253,7 @@ export const zhCN: DeepPartial<Dictionary> = {
     noRequestsYet: "还没有提交代祷事项。",
     closeConfirmTitle: "关闭房间并开始分配代祷？",
     closeConfirmDescription:
-      "现在会打乱并分配代祷事项，此操作无法撤销。",
+      "即将随机分配代祷事项，此操作无法撤销。",
     closeConfirmText: "关闭并分配",
     closeCancelText: "暂不",
     couldNotCloseRoom: "无法关闭祷告房间",
