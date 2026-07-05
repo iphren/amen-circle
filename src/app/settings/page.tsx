@@ -5,6 +5,7 @@ import { SiteNav } from "@/components/site-nav";
 import { PasskeyManager } from "@/app/settings/passkey-manager";
 import { DeleteAccount } from "@/app/settings/delete-account";
 import { LanguageCard } from "@/app/settings/language-card";
+import { DisplayNameCard } from "@/app/settings/display-name-card";
 import { LogoutButton } from "@/components/logout-button";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -53,6 +54,8 @@ export default async function SettingsPage() {
           {t.settings.subtitle}
         </p>
         <div className="mt-8 flex flex-col gap-6">
+          <DisplayNameCard current={user.displayName} />
+
           <PasskeyManager
             initialPasskeys={passkeys.map((p) => ({
               id: p.id,

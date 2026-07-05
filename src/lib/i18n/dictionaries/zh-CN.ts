@@ -283,6 +283,9 @@ export const zhCN: DeepPartial<Dictionary> = {
   settings: {
     title: "设置",
     subtitle: "管理你的通行密钥、数据和账号。",
+    displayNameTitle: "显示名称",
+    displayNameDescription: "其他人在你的代祷事项旁和祷告房间里看到的名称。",
+    couldNotSaveName: "无法保存你的名称",
     dataTitle: "你的数据",
     dataDescription:
       "下载我们保存的与你有关的所有内容，包括个人资料、同意记录、祷告房间和代祷事项，格式为 JSON。",
@@ -384,6 +387,7 @@ export const zhCN: DeepPartial<Dictionary> = {
     onlyPasskey:
       "你不能删除唯一的通行密钥。请先添加备用通行密钥，或使用账号找回。",
     passkeyNameLength: "名称长度必须为 1–{max} 个字符。",
+    displayNameLength: "名称长度必须为 1–{max} 个字符。",
     // 其他
     mustAcceptTermsToRegister:
       "你必须接受条款并同意处理你的代祷事项才能注册。",

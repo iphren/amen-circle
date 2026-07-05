@@ -198,7 +198,7 @@ export const enGB = {
     sentEmpty:
       "Nothing here yet. Share a request in one of your rooms and it will show up here.",
     prayerAnswered: "Prayer answered",
-    confidential: "confidential",
+    confidential: "Confidential",
     // {name} interpolated (rendered as a chip)
     fromLabel: "From",
     report: "Report",
@@ -298,6 +298,10 @@ export const enGB = {
   settings: {
     title: "Settings",
     subtitle: "Manage your passkeys, your data, and your account.",
+    displayNameTitle: "Display name",
+    displayNameDescription:
+      "The name others see next to your prayers and in your circles.",
+    couldNotSaveName: "could not save your name",
     dataTitle: "Your data",
     dataDescription:
       "Download a copy of everything we hold about you, profile, consent records, circles, and your prayer requests, as JSON.",
@@ -409,6 +413,8 @@ export const enGB = {
       "You can't remove your only passkey. Add a backup first, or use account recovery.",
     // {max} interpolated
     passkeyNameLength: "Name must be 1–{max} characters.",
+    // {max} interpolated
+    displayNameLength: "Name must be 1–{max} characters.",
     // Misc
     mustAcceptTermsToRegister:
       "You must accept the terms and consent to the processing of your prayer requests to register.",
