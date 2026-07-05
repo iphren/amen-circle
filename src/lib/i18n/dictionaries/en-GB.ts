@@ -56,11 +56,13 @@ export const enGB = {
   landing: {
     register: "Register",
     signIn: "Sign in",
-    prayerRulesTitle: "Prayer rhythm",
+    prayerRulesTitle: "Prayer rules",
     prayerRules: [
       "Keep it small: invite people you know and trust.",
       "Share one request: write what you would like someone to pray for, and mark sensitive details confidential.",
       "Close the room when everyone is ready. Each request is given to another member to pray for.",
+      "Don't tell others who you're praying for. You won't know who is praying for you.",
+      "Give all glory to God.",
     ],
   },
 
