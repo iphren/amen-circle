@@ -19,8 +19,8 @@ set -euo pipefail
 cd /home/ubuntu/apps/amen-circle
 git fetch origin main
 git reset --hard origin/main
-docker compose -f docker-compose.prod.yml build app
-docker compose -f docker-compose.prod.yml up -d
+docker compose --env-file .env.production -f docker-compose.prod.yml build app
+docker compose --env-file .env.production -f docker-compose.prod.yml up -d
 for i in $(seq 1 30); do
   if curl -fsS -o /dev/null http://127.0.0.1:3001/; then
     echo "deploy OK"
@@ -30,6 +30,6 @@ for i in $(seq 1 30); do
   sleep 2
 done
 echo "health check failed after 60s" >&2
-docker compose -f docker-compose.prod.yml logs --tail=100 app >&2
+docker compose --env-file .env.production -f docker-compose.prod.yml logs --tail=100 app >&2
 exit 1
 REMOTE
