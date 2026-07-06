@@ -15,6 +15,16 @@ export function FooterLanguageSelect({ current }: { current: Locale }) {
   const [value, setValue] = useState<Locale>(current);
   const [busy, setBusy] = useState(false);
 
+  // Reconcile the dropdown when router.refresh() re-renders the server with a new
+  // locale (e.g. changed from the settings page or another selector). useState seeds
+  // `value` only once, so we adjust it during render — not in an effect — whenever
+  // the authoritative `current` prop changes, per React's documented pattern.
+  const [lastCurrent, setLastCurrent] = useState<Locale>(current);
+  if (current !== lastCurrent) {
+    setLastCurrent(current);
+    setValue(current);
+  }
+
   async function handleChange(next: Locale) {
     const previous = value;
     setValue(next);

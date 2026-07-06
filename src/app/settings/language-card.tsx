@@ -24,6 +24,16 @@ export function LanguageCard({ current }: { current: Locale }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Reconcile the dropdown when router.refresh() re-renders the server with a new
+  // locale (e.g. changed from the footer selector). useState seeds `value` only once,
+  // so we adjust it during render — not in an effect — whenever the authoritative
+  // `current` prop changes, per React's documented pattern.
+  const [lastCurrent, setLastCurrent] = useState<Locale>(current);
+  if (current !== lastCurrent) {
+    setLastCurrent(current);
+    setValue(current);
+  }
+
   async function handleChange(next: Locale) {
     const previous = value;
     setValue(next);
