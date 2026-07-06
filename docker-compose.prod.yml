@@ -17,7 +17,8 @@ services:
     env_file: .env.production
     ports:
       # Localhost-only: nginx on the host proxies amencircle.com here.
-      - "127.0.0.1:3001:3000"
+      # Keep in sync with deploy/nginx-amencircle.conf and scripts/deploy.sh.
+      - "127.0.0.1:13001:3000"
     depends_on:
       db:
         condition: service_healthy

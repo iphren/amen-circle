@@ -22,7 +22,7 @@ git reset --hard origin/main
 docker compose --env-file .env.production -f docker-compose.prod.yml build app
 docker compose --env-file .env.production -f docker-compose.prod.yml up -d
 for i in $(seq 1 30); do
-  if curl -fsS -o /dev/null http://127.0.0.1:3001/; then
+  if curl -fsS -o /dev/null http://127.0.0.1:13001/; then
     echo "deploy OK"
     docker image prune -f >/dev/null
     exit 0
