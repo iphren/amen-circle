@@ -483,7 +483,7 @@ export const enGB = {
           blocks: [
             {
               type: "p",
-              md: "We use the following processors: Neon (database hosting), and Amazon Web Services — Amplify for hosting, SES for transactional email, and CloudWatch for logs — in the eu-west-2 (London) region. We do not sell or share your data with anyone else, and there is no advertising or analytics tracking on this site.",
+              md: "We use Amazon Web Services as our processor: the application and its database run on an AWS server in the eu-west-2 (London) region, SES sends transactional email, and CloudFront carries traffic between you and the server — its edge locations may handle data in transit outside the UK, but your data is stored only in London. We do not sell or share your data with anyone else, and there is no advertising or analytics tracking on this site.",
             },
           ],
         },
@@ -501,7 +501,7 @@ export const enGB = {
           blocks: [
             {
               type: "p",
-              md: "All prayer request content is encrypted at rest (AES-256-GCM) in addition to the disk-level encryption provided by our database host. Sign-in uses passkeys, so we never store passwords. Sign-in and recovery links are single-use, short-lived, and stored only as hashes.",
+              md: "All prayer request content is encrypted at rest (AES-256-GCM). Sign-in uses passkeys, so we never store passwords. Sign-in and recovery links are single-use, short-lived, and stored only as hashes.",
             },
           ],
         },

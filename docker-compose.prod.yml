@@ -15,6 +15,11 @@ services:
     build: .
     restart: unless-stopped
     env_file: .env.production
+    logging: &log-cap
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     ports:
       # Localhost-only: nginx on the host proxies amencircle.com here.
       # Keep in sync with deploy/nginx-amencircle.conf and scripts/deploy.sh.
@@ -40,6 +45,7 @@ services:
     # restores cleanly. Local dev (docker-compose.yml) still runs 16.
     image: postgres:17
     restart: unless-stopped
+    logging: *log-cap
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}

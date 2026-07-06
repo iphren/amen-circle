@@ -11,13 +11,14 @@ Live at **https://amencircle.com**.
 ## Stack
 
 - Next.js 16 (App Router, TypeScript strict, Tailwind v4)
-- Prisma 6 + Neon (PostgreSQL, pooled)
+- Prisma 6 + PostgreSQL 17
 - Passkey-first auth via `@simplewebauthn/server` and iron-session, with an
   email magic-link sign-in fallback and email-based account recovery
 - Transactional email via AWS SES (`@aws-sdk/client-ses`)
 - AES-256-GCM encryption at rest for all prayer-request content
 - Vitest for unit/route tests
-- Deployed on AWS Amplify (`WEB_COMPUTE`), Terraform-managed (`infra/`)
+- Deployed on an EC2 server as a Docker Compose stack (app + Postgres) behind
+  CloudFront; DNS/CDN/SES are Terraform-managed (`infra/`)
 
 ## Local development
 
@@ -28,7 +29,7 @@ nvm use
 # Install
 npm install
 
-# Bring up a local Postgres (localhost:5433), or point DATABASE_URL at Neon
+# Bring up a local Postgres (localhost:5433)
 docker compose up -d
 
 # Push the Prisma schema to your dev DB
@@ -81,20 +82,29 @@ helpers).
 
 ## Infrastructure
 
-All AWS resources (Amplify app, IAM role, SES identity, Route 53 record, domain
-association) live in `infra/` as Terraform. Secrets are read from SSM Parameter
-Store at build time and snapshotted into `.next/server/runtime-env.json` for the
-SSR Lambda — see `src/instrumentation.ts` for the read side, and `amplify.yml`
-for the snapshot step.
+The app runs on an EC2 server as a Docker Compose stack
+(`docker-compose.prod.yml`: Next.js standalone image + PostgreSQL 17) behind
+the server's shared nginx (`deploy/nginx-amencircle.conf`). TLS terminates at
+CloudFront, which authenticates to nginx with a secret `X-Origin-Verify`
+header, so the origin cannot be reached directly. AWS resources (CloudFront
+distributions, ACM certs, SES identity, Route 53 records) live in `infra/` as
+Terraform; runtime secrets live in `.env.production` on the server (mirrored
+in SSM Parameter Store).
 
-Email: the SSR Lambda has no assumable role for the AWS SDK, so SES is accessed
-via an explicit, tightly-scoped IAM access key (`SES_*` env vars). A new SES
-account starts in the **sandbox** (can only send to verified addresses) — request
-production access in the SES console. DKIM records are managed in Terraform.
+Deploys: `DEPLOY_HOST=ubuntu@<server> ./scripts/deploy.sh` (builds on the
+server from `origin/main` and health-checks before finishing). The
+Amplify→EC2 migration runbook is in `deploy/cutover-runbook.md`.
 
-One manual setting: the Amplify SSR CloudWatch log group is auto-created
-outside Terraform — set its retention to **30 days** in the CloudWatch
-console. The privacy policy's claim about access-log retention depends on it.
+Email: SES is accessed via an explicit, tightly-scoped IAM access key
+(`SES_*` env vars) rather than the shared server's instance role. A new SES
+account starts in the **sandbox** (can only send to verified addresses) —
+request production access in the SES console. DKIM records are managed in
+Terraform.
+
+Access logs are nginx's on the server; the privacy policy claims a 30-day
+retention, so keep `/etc/logrotate.d/nginx` at or below that (Ubuntu's
+default of 14 daily rotations is fine). App/db container logs are size-capped
+in `docker-compose.prod.yml`.
 
 ## Legal pages
 
