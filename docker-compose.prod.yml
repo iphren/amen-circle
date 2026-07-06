@@ -36,7 +36,9 @@ services:
       start_period: 15s
 
   db:
-    image: postgres:16
+    # 17 to match Neon's major (17.10 at migration time) so its pg_dump
+    # restores cleanly. Local dev (docker-compose.yml) still runs 16.
+    image: postgres:17
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
