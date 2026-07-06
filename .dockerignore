@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.env*
+infra
+coverage
+*.tsbuildinfo
+Dockerfile
+docker-compose*.yml
+deploy

@@ -35,6 +35,14 @@ variable "legacy_certificate_arn" {
   default = "arn:aws:acm:us-east-1:387479857085:certificate/322842ee-8a43-4ff9-900a-f72727639f9d"
 }
 
+# Stable public DNS name of the EC2 server that hosts the Docker Compose stack
+# (CloudFront's custom origin), e.g. the instance's public DNS or an existing
+# A record you control. Must resolve publicly and serve nginx on port 80.
+variable "origin_server_domain" {
+  type        = string
+  description = "Public DNS name of the EC2 origin server (nginx on port 80)"
+}
+
 # Full RFC 5322 "From" header used for account-recovery emails (may include a
 # display name). The address part must belong to the verified SES identity.
 variable "email_from" {

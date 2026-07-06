@@ -38,6 +38,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Emits .next/standalone for the production Docker image (see Dockerfile).
+  output: "standalone",
   serverExternalPackages: ["@prisma/client", "@prisma/engines"],
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];

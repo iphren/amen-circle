@@ -1,0 +1,54 @@
+# Production stack for the EC2 server. Local dev uses docker-compose.yml.
+#
+# Usage (on the server, from /home/ubuntu/apps/amen-circle):
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Requires:
+#   - .env.production (app runtime env; chmod 600, never committed)
+#   - POSTGRES_PASSWORD in the shell env or a .env file next to this one,
+#     matching the password inside .env.production's DATABASE_URL
+#     (DATABASE_URL=postgresql://postgres:<password>@db:5432/amen_circle)
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env.production
+    ports:
+      # Localhost-only: nginx on the host proxies amencircle.com here.
+      - "127.0.0.1:3001:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: amen_circle
+    ports:
+      # Localhost-only, for admin over an SSH tunnel (psql, prisma db push).
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - amen_pgdata_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d amen_circle"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  amen_pgdata_prod:

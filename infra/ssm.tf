@@ -25,3 +25,14 @@ data "aws_ssm_parameter" "github_access_token" {
   name            = "/${var.app_name}/github-access-token"
   with_decryption = true
 }
+
+# Shared secret proving a request came through CloudFront: injected as the
+# X-Origin-Verify origin header and checked by nginx on the EC2 server
+# (deploy/nginx-amencircle.conf). Create it manually before the first apply:
+#   aws ssm put-parameter --name /amen-circle/origin-verify-secret \
+#     --type SecureString --value "$(openssl rand -hex 32)"
+# Rotation requires updating the nginx conf on the server AND re-applying.
+data "aws_ssm_parameter" "origin_verify_secret" {
+  name            = "/${var.app_name}/origin-verify-secret"
+  with_decryption = true
+}

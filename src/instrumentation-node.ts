@@ -54,10 +54,18 @@ export async function registerNode() {
   }
 
   // Best-effort purge of long-expired login/recovery tokens (backs the privacy
-  // policy's "expired links are purged" retention claim). Runs on every Lambda
-  // cold start — plenty at this scale; both models index expiresAt. The 24h
-  // grace period keeps recent rows countable by the token-email rate limiter.
-  // Must never crash server init.
+  // policy's "expired links are purged" retention claim). Both models index
+  // expiresAt. The 24h grace period keeps recent rows countable by the
+  // token-email rate limiter. Runs once at boot and then daily — on Lambda
+  // every cold start is a boot, and on a long-lived server (Docker/EC2) the
+  // interval keeps housekeeping going between restarts. Must never crash
+  // server init.
+  await purgeExpiredTokens();
+  const dayMs = 24 * 60 * 60 * 1000;
+  setInterval(purgeExpiredTokens, dayMs).unref();
+}
+
+async function purgeExpiredTokens() {
   try {
     const { prisma } = await import("@/lib/prisma");
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -68,6 +76,6 @@ export async function registerNode() {
       where: { expiresAt: { lt: cutoff } },
     });
   } catch {
-    // Purge is housekeeping only — retry on the next cold start.
+    // Purge is housekeeping only — retry on the next run.
   }
 }
