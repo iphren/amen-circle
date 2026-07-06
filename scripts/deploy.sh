@@ -8,8 +8,8 @@
 #   docker build -t amen-circle-app . && docker save amen-circle-app | ssh $DEPLOY_HOST docker load
 #
 # Schema changes (this project uses `prisma db push`, no migrations dir):
-#   ssh -N -L 15433:127.0.0.1:5433 $DEPLOY_HOST &
-#   DATABASE_URL=postgresql://postgres:<password>@localhost:15433/amen_circle npx prisma db push
+#   ssh -N -L 15432:127.0.0.1:15432 $DEPLOY_HOST &
+#   DATABASE_URL=postgresql://postgres:<password>@localhost:15432/amen_circle npx prisma db push
 set -euo pipefail
 
 HOST="${DEPLOY_HOST:?set DEPLOY_HOST, e.g. DEPLOY_HOST=user@server}"

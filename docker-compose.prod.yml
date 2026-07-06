@@ -43,7 +43,8 @@ services:
       POSTGRES_DB: amen_circle
     ports:
       # Localhost-only, for admin over an SSH tunnel (psql, prisma db push).
-      - "127.0.0.1:5433:5432"
+      # Deliberately away from 5432/5433, which are taken/reserved on the host.
+      - "127.0.0.1:15432:5432"
     volumes:
       - amen_pgdata_prod:/var/lib/postgresql/data
     healthcheck:
