@@ -36,11 +36,21 @@ variable "legacy_certificate_arn" {
 }
 
 # Stable public DNS name of the EC2 server that hosts the Docker Compose stack
-# (CloudFront's custom origin), e.g. the instance's public DNS or an existing
-# A record you control. Must resolve publicly and serve nginx on port 80.
+# (CloudFront's custom origin). Either reuse the origin hostname your other
+# apps' distributions already point at, or set var.origin_server_ip and use
+# "origin.amencircle.com" here (Terraform then creates the A record).
 variable "origin_server_domain" {
   type        = string
   description = "Public DNS name of the EC2 origin server (nginx on port 80)"
+}
+
+# Elastic IP of the EC2 origin server. When set, Terraform creates an A record
+# origin.<domain> pointing at it (see aws_route53_record.origin). Leave empty
+# if origin_server_domain is an existing hostname you manage elsewhere.
+variable "origin_server_ip" {
+  type        = string
+  description = "Elastic IP of the EC2 origin server (optional)"
+  default     = ""
 }
 
 # Full RFC 5322 "From" header used for account-recovery emails (may include a

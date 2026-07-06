@@ -13,6 +13,19 @@
 # Until then the stack is fully testable via the dxxxx.cloudfront.net name
 # (the redirect function only matches the real alternate domains).
 
+# Stable name for the EC2 origin, so the distribution never has to track IP
+# or AWS-generated hostnames. Created only when origin_server_ip is set;
+# CloudFront forwards the viewer's Host header, so nginx never sees (and does
+# not need a server_name for) this hostname.
+resource "aws_route53_record" "origin" {
+  count   = var.origin_server_ip == "" ? 0 : 1
+  zone_id = data.aws_route53_zone.root.zone_id
+  name    = "origin.${var.domain_name}"
+  type    = "A"
+  ttl     = 300
+  records = [var.origin_server_ip]
+}
+
 data "aws_cloudfront_cache_policy" "caching_disabled" {
   name = "Managed-CachingDisabled"
 }
