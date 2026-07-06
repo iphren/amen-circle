@@ -53,6 +53,7 @@ export const enGB = {
     privacy: "Privacy",
     terms: "Terms",
     contact: "Contact / report content",
+    languageLabel: "Language",
   },
 
   landing: {

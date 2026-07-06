@@ -52,6 +52,7 @@ export const zhCN: DeepPartial<Dictionary> = {
     privacy: "隐私",
     terms: "条款",
     contact: "联系 / 举报内容",
+    languageLabel: "语言",
   },
 
   landing: {
