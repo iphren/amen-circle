@@ -253,60 +253,21 @@ resource "aws_amplify_branch" "main" {
   }
 }
 
-resource "aws_amplify_domain_association" "main" {
-  app_id      = aws_amplify_app.main.id
-  domain_name = var.domain_name
+# CUTOVER (2026-07): the Amplify domain associations that used to live here
+# are gone — the domains now ride the CloudFront distributions in
+# cloudfront.tf, pointed at the EC2 origin. The Amplify app/branch above stay
+# until the post-cutover soak completes (rollback = restore the associations
+# and empty the aliases in cloudfront.tf), then get decommissioned.
 
-  certificate_settings {
-    type                   = "CUSTOM"
-    custom_certificate_arn = aws_acm_certificate_validation.main.certificate_arn
-  }
-
-  sub_domain {
-    branch_name = aws_amplify_branch.main.branch_name
-    prefix      = ""
-  }
-
-  sub_domain {
-    branch_name = aws_amplify_branch.main.branch_name
-    prefix      = "www"
-  }
-}
-
-# Keeps the old hostname attached to the app (with its existing cert) so the
-# 301 custom rule above can answer it over valid HTTPS.
-resource "aws_amplify_domain_association" "legacy" {
-  app_id      = aws_amplify_app.main.id
-  domain_name = var.legacy_domain_name
-
-  certificate_settings {
-    type                   = "CUSTOM"
-    custom_certificate_arn = var.legacy_certificate_arn
-  }
-
-  sub_domain {
-    branch_name = aws_amplify_branch.main.branch_name
-    prefix      = ""
-  }
-}
-
-locals {
-  # Amplify reports each sub_domain's DNS target as "<prefix> CNAME <host>";
-  # pull out the CloudFront hostname for the apex entry.
-  apex_dns_record = one([for s in aws_amplify_domain_association.main.sub_domain : s.dns_record if s.prefix == ""])
-  apex_cloudfront = element(split(" ", local.apex_dns_record), length(split(" ", local.apex_dns_record)) - 1)
-}
-
-# The apex can't be a CNAME, so alias straight to the app's CloudFront
-# distribution. Z2FDTNDATAQYW2 is CloudFront's fixed hosted zone ID.
+# The apex can't be a CNAME, so alias straight to the distribution.
 resource "aws_route53_record" "main" {
   zone_id = data.aws_route53_zone.root.zone_id
   name    = var.domain_name
   type    = "A"
 
   alias {
-    name                   = local.apex_cloudfront
-    zone_id                = "Z2FDTNDATAQYW2"
+    name                   = aws_cloudfront_distribution.main.domain_name
+    zone_id                = aws_cloudfront_distribution.main.hosted_zone_id
     evaluate_target_health = false
   }
 }
@@ -316,7 +277,7 @@ resource "aws_route53_record" "www" {
   name    = "www.${var.domain_name}"
   type    = "CNAME"
   ttl     = 300
-  records = ["${var.github_branch}.${aws_amplify_app.main.id}.amplifyapp.com"]
+  records = [aws_cloudfront_distribution.main.domain_name]
 }
 
 resource "aws_route53_record" "legacy" {
@@ -324,5 +285,5 @@ resource "aws_route53_record" "legacy" {
   name    = var.legacy_domain_name
   type    = "CNAME"
   ttl     = 300
-  records = ["${var.github_branch}.${aws_amplify_app.main.id}.amplifyapp.com"]
+  records = [aws_cloudfront_distribution.legacy_redirect.domain_name]
 }

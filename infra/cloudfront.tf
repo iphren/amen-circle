@@ -2,16 +2,11 @@
 # the server's shared nginx). TLS terminates here; the origin is plain HTTP on
 # port 80, authenticated by the X-Origin-Verify custom header that nginx checks.
 #
-# CUTOVER NOTE: CloudFront CNAMEs are globally unique, so neither distribution
-# can carry its domain aliases while the aws_amplify_domain_association
-# resources in main.tf still exist. The cutover is a single apply that
-#   1. deletes aws_amplify_domain_association.main and .legacy (main.tf),
-#   2. fills in the `aliases` lists below,
-#   3. repoints aws_route53_record.main/www/legacy (main.tf) at these
-#      distributions (apex: alias to aws_cloudfront_distribution.main;
-#      www + legacy: CNAMEs to the respective distribution domain_name).
-# Until then the stack is fully testable via the dxxxx.cloudfront.net name
-# (the redirect function only matches the real alternate domains).
+# CUTOVER NOTE: CloudFront CNAMEs are globally unique, so the domain aliases
+# below could only be added in the same apply that deleted the Amplify domain
+# associations (see the cutover comment in main.tf). Applying this config
+# BEFORE the cutover window will start the cutover — the aliases and the
+# Route53 changes in main.tf go live together.
 
 # Stable name for the EC2 origin, so the distribution never has to track IP
 # or AWS-generated hostnames. Created only when origin_server_ip is set;
@@ -88,8 +83,7 @@ resource "aws_cloudfront_distribution" "main" {
   # NA + EU edges only — the audience is UK-centric and this halves the cost.
   price_class = "PriceClass_100"
 
-  # Filled in at cutover (see header note): [var.domain_name, "www.${var.domain_name}"]
-  aliases = []
+  aliases = [var.domain_name, "www.${var.domain_name}"]
 
   origin {
     origin_id   = "ec2-nginx"
@@ -161,8 +155,7 @@ resource "aws_cloudfront_distribution" "legacy_redirect" {
   comment         = "${var.app_name} legacy-domain redirect"
   price_class     = "PriceClass_100"
 
-  # Filled in at cutover (see header note): [var.legacy_domain_name]
-  aliases = []
+  aliases = [var.legacy_domain_name]
 
   origin {
     origin_id   = "redirect-dummy"
