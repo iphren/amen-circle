@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useTranslations } from "@/components/i18n-provider";
+import { UserChip } from "@/components/user-chip";
 
 export function DisplayNameCard({ current }: { current: string }) {
   const t = useTranslations();
@@ -106,7 +107,9 @@ export function DisplayNameCard({ current }: { current: string }) {
           </div>
         ) : (
           <div className="flex items-center justify-between gap-4">
-            <p className="min-w-0 truncate text-sm font-medium">{name}</p>
+            <div className="min-w-0">
+              <UserChip name={name} />
+            </div>
             <Button
               variant="outline"
               size="sm"
