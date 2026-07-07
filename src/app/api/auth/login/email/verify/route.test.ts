@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     loginToken: { findUnique: vi.fn(), updateMany: vi.fn() },
+    user: { updateMany: vi.fn() },
   },
 }));
 vi.mock("@/lib/session", () => ({ getSession: vi.fn() }));
@@ -28,6 +29,7 @@ function fakeSession() {
 
 const tokenFind = vi.mocked(prisma.loginToken.findUnique);
 const tokenClaim = vi.mocked(prisma.loginToken.updateMany);
+const markVerified = vi.mocked(prisma.user.updateMany);
 const session = vi.mocked(getSession);
 
 beforeEach(() => {
@@ -46,6 +48,7 @@ describe("login/email/verify — token lifecycle", () => {
     const res = await POST(jsonRequest({ token: "does-not-exist" }));
     expect(res.status).toBe(400);
     expect(tokenClaim).not.toHaveBeenCalled();
+    expect(markVerified).not.toHaveBeenCalled();
   });
 
   it("rejects an already-used or expired token (claim matches 0 rows → 400)", async () => {
@@ -55,9 +58,10 @@ describe("login/email/verify — token lifecycle", () => {
     const res = await POST(jsonRequest({ token: "spent" }));
 
     expect(res.status).toBe(400);
+    expect(markVerified).not.toHaveBeenCalled();
   });
 
-  it("accepts a valid token: claims it and signs the user in (200)", async () => {
+  it("accepts a valid token: claims it, marks the email verified and signs the user in (200)", async () => {
     tokenFind.mockResolvedValue({ id: "t1", userId: "u1" } as never);
     tokenClaim.mockResolvedValue({ count: 1 } as never);
     const s = fakeSession();
@@ -67,6 +71,12 @@ describe("login/email/verify — token lifecycle", () => {
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
+    // Consuming an emailed token proves address ownership; only ever sets the
+    // timestamp once (guarded by emailVerifiedAt: null).
+    expect(markVerified).toHaveBeenCalledWith({
+      where: { id: "u1", emailVerifiedAt: null },
+      data: { emailVerifiedAt: expect.any(Date) },
+    });
     expect(s.userId).toBe("u1");
     expect(s.save).toHaveBeenCalledOnce();
   });

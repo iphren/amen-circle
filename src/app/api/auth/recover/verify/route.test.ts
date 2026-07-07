@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     recoveryToken: { findUnique: vi.fn(), updateMany: vi.fn() },
+    user: { updateMany: vi.fn() },
   },
 }));
 vi.mock("@/lib/session", () => ({ getSession: vi.fn() }));
@@ -30,6 +31,7 @@ function fakeSession() {
 
 const tokenFind = vi.mocked(prisma.recoveryToken.findUnique);
 const tokenClaim = vi.mocked(prisma.recoveryToken.updateMany);
+const markVerified = vi.mocked(prisma.user.updateMany);
 const enrollOpts = vi.mocked(buildEnrollmentOptions);
 const session = vi.mocked(getSession);
 
@@ -63,6 +65,7 @@ describe("recover/verify — token lifecycle", () => {
 
     expect(res.status).toBe(400);
     expect(enrollOpts).not.toHaveBeenCalled();
+    expect(markVerified).not.toHaveBeenCalled();
   });
 
   it("accepts a valid token: claims it, returns options, sets the recovery session (200)", async () => {
@@ -74,6 +77,11 @@ describe("recover/verify — token lifecycle", () => {
     const res = await POST(jsonRequest({ token: "valid" }));
 
     expect(res.status).toBe(200);
+    // Consuming an emailed token proves address ownership.
+    expect(markVerified).toHaveBeenCalledWith({
+      where: { id: "u1", emailVerifiedAt: null },
+      data: { emailVerifiedAt: expect.any(Date) },
+    });
     expect(enrollOpts).toHaveBeenCalledWith("u1");
     expect(s.pendingUserId).toBe("u1");
     expect(s.challenge).toBe("chal");

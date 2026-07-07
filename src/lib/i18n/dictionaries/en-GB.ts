@@ -85,10 +85,17 @@ export const enGB = {
     continueWithPasskey: "Continue with passkey",
     haveAccount: "Have an account? Sign in",
     newHere: "New here? Register",
-    troublePasskey: "Trouble with your passkey? Email me a sign-in link",
+    troublePasskey: "Email me a sign-in link",
     lostDevice: "Lost your device?",
+    emailSignupLink: "Email me a sign-up link instead",
+    sendingSignupLink: "Sending…",
+    // {email} is replaced with the address the user typed. Shown to everyone
+    // regardless of whether the account already exists (enumeration-neutral).
+    signupLinkSentNote:
+      "We've sent a link to {email}. Open it within 15 minutes to finish creating your account. If you already have an account, the link simply signs you in.",
     errors: {
       couldNotStartRegistration: "could not start registration",
+      couldNotSendSignupLink: "could not send sign-up link",
       registrationVerificationFailed: "registration verification failed",
       registrationFailed: "registration failed",
       couldNotStartSignIn: "could not start sign-in",
@@ -374,6 +381,14 @@ export const enGB = {
       // {appName} interpolated
       bodyIntro: "You asked to sign in to {appName} with an email link.",
       ctaLabel: "Sign in",
+      expiryNote: "This link expires in 15 minutes and can be used once.",
+    },
+    registrationLink: {
+      subject: "Finish creating your Amen Circle account",
+      previewLabel: "Registration link",
+      // {appName} interpolated
+      bodyIntro: "You asked to create a {appName} account with an email link.",
+      ctaLabel: "Activate my account",
       expiryNote: "This link expires in 15 minutes and can be used once.",
     },
   },

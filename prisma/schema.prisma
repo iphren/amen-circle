@@ -26,6 +26,11 @@ model User {
   religiousDataConsentAt DateTime?
   ageConfirmedAt         DateTime?
 
+  // Set when the user proves ownership of their email by consuming an emailed
+  // single-use token (sign-in or registration link). A zero-passkey row with
+  // this set is a real account, NOT a resumable interrupted signup.
+  emailVerifiedAt DateTime?
+
   // Preferred UI language (e.g. "en-GB", "zh-CN). Null means "not set" — the
   // app then detects from the browser. Stored here so the choice syncs across
   // the user's devices.

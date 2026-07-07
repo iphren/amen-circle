@@ -175,6 +175,23 @@ function loginLinkEmailTemplate(
   return { subject: t.emails.loginLink.subject, html, text };
 }
 
+function registrationLinkEmailTemplate(
+  activateUrl: string,
+  locale: Locale,
+): EmailTemplate {
+  const t = getDictionary(locale);
+  const { html, text } = renderEmail({
+    locale,
+    bodyIntro: interpolate(t.emails.registrationLink.bodyIntro, {
+      appName: t.common.appName,
+    }),
+    ctaLabel: t.emails.registrationLink.ctaLabel,
+    ctaUrl: activateUrl,
+    expiryNote: t.emails.registrationLink.expiryNote,
+  });
+  return { subject: t.emails.registrationLink.subject, html, text };
+}
+
 async function deliver(to: string, template: EmailTemplate): Promise<void> {
   await getClient().send(
     new SendEmailCommand({
@@ -214,6 +231,17 @@ export async function sendLoginLinkEmail(args: {
   );
 }
 
+export async function sendRegistrationLinkEmail(args: {
+  to: string;
+  activateUrl: string;
+  locale?: Locale;
+}): Promise<void> {
+  await deliver(
+    args.to,
+    registrationLinkEmailTemplate(args.activateUrl, args.locale ?? DEFAULT_LOCALE),
+  );
+}
+
 // Sample data for local template previews (see src/app/dev/emails). Building
 // these doesn't touch the SES client, so no AWS credentials are needed. Preview
 // labels use the default locale.
@@ -233,6 +261,14 @@ export const PREVIEW_EMAIL_TEMPLATES: Record<
     label: getDictionary(DEFAULT_LOCALE).emails.loginLink.previewLabel,
     build: (locale = DEFAULT_LOCALE) =>
       loginLinkEmailTemplate(
+        "https://amencircle.com/auth/email-login?token=sample-preview-token",
+        locale,
+      ),
+  },
+  "registration-link": {
+    label: getDictionary(DEFAULT_LOCALE).emails.registrationLink.previewLabel,
+    build: (locale = DEFAULT_LOCALE) =>
+      registrationLinkEmailTemplate(
         "https://amencircle.com/auth/email-login?token=sample-preview-token",
         locale,
       ),

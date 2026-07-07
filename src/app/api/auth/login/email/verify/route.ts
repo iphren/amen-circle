@@ -37,6 +37,14 @@ export async function POST(req: Request) {
   });
   if (claimed.count === 0) return invalid;
 
+  // Consuming an emailed token proves ownership of the address. This is what
+  // completes an email-based registration (see /api/auth/register/email/start):
+  // a verified zero-passkey account is no longer a claimable interrupted signup.
+  await prisma.user.updateMany({
+    where: { id: token.userId, emailVerifiedAt: null },
+    data: { emailVerifiedAt: new Date() },
+  });
+
   const session = await getSession();
   session.userId = token.userId;
   delete session.challenge;

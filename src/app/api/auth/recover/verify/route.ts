@@ -41,6 +41,13 @@ export async function POST(req: Request) {
   });
   if (claimed.count === 0) return invalid;
 
+  // Consuming an emailed token proves ownership of the address — same
+  // semantics as login/email/verify, kept uniform across both token kinds.
+  await prisma.user.updateMany({
+    where: { id: token.userId, emailVerifiedAt: null },
+    data: { emailVerifiedAt: new Date() },
+  });
+
   const { options, challenge } = await buildEnrollmentOptions(token.userId);
 
   const session = await getSession();

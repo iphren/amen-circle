@@ -7,7 +7,7 @@ import {
   startAuthentication,
   startRegistration,
 } from "@simplewebauthn/browser";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ConsentCheckboxes } from "@/components/consent-checkboxes";
 import { useTranslations } from "@/components/i18n-provider";
+import { interpolate } from "@/lib/i18n/interpolate";
 
 type Mode = "login" | "register";
 
@@ -38,6 +39,7 @@ export function PasskeyForm({
   const [consentReligiousData, setConsentReligiousData] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [signupLinkSent, setSignupLinkSent] = useState(false);
 
   async function handleRegister() {
     setBusy(true);
@@ -72,6 +74,34 @@ export function PasskeyForm({
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : t.auth.errors.registrationFailed);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleEmailRegister() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/auth/register/email/start", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          email,
+          displayName,
+          acceptTerms,
+          consentReligiousData,
+        }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error ?? t.auth.errors.couldNotSendSignupLink);
+      }
+      setSignupLinkSent(true);
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : t.auth.errors.couldNotSendSignupLink,
+      );
     } finally {
       setBusy(false);
     }
@@ -117,52 +147,75 @@ export function PasskeyForm({
         </CardTitle>
         <CardDescription>
           {mode === "register"
-            ? t.auth.createDescription
+            ? signupLinkSent
+              ? t.emailLogin.checkInbox
+              : t.auth.createDescription
             : t.auth.signInDescription}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {mode === "register" ? (
-          <>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="email">{t.common.emailLabel}</Label>
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t.common.emailPlaceholder}
+          signupLinkSent ? (
+            <p className="text-sm text-muted-foreground">
+              {interpolate(t.auth.signupLinkSentNote, { email })}
+            </p>
+          ) : (
+            <>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="email">{t.common.emailLabel}</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t.common.emailPlaceholder}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="displayName">{t.auth.displayNameLabel}</Label>
+                <Input
+                  id="displayName"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder={t.auth.displayNamePlaceholder}
+                />
+              </div>
+              <ConsentCheckboxes
+                idPrefix="register"
+                acceptTerms={acceptTerms}
+                onAcceptTermsChange={setAcceptTerms}
+                consentReligiousData={consentReligiousData}
+                onConsentReligiousDataChange={setConsentReligiousData}
               />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="displayName">{t.auth.displayNameLabel}</Label>
-              <Input
-                id="displayName"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder={t.auth.displayNamePlaceholder}
-              />
-            </div>
-            <ConsentCheckboxes
-              idPrefix="register"
-              acceptTerms={acceptTerms}
-              onAcceptTermsChange={setAcceptTerms}
-              consentReligiousData={consentReligiousData}
-              onConsentReligiousDataChange={setConsentReligiousData}
-            />
-            <Button
-              onClick={handleRegister}
-              disabled={busy || !canRegister}
-              className="mt-2"
-            >
-              {busy ? t.auth.creatingPasskey : t.auth.createPasskey}
-            </Button>
-          </>
+              <Button
+                onClick={handleRegister}
+                disabled={busy || !canRegister}
+                className="mt-2"
+              >
+                {busy ? t.auth.creatingPasskey : t.auth.createPasskey}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={handleEmailRegister}
+                disabled={busy || !canRegister}
+              >
+                {busy ? t.auth.sendingSignupLink : t.auth.emailSignupLink}
+              </Button>
+            </>
+          )
         ) : (
-          <Button onClick={handleLogin} disabled={busy} className="mt-2">
-            {busy ? t.auth.waitingForPasskey : t.auth.continueWithPasskey}
-          </Button>
+          <>
+            <Button onClick={handleLogin} disabled={busy} className="mt-2">
+              {busy ? t.auth.waitingForPasskey : t.auth.continueWithPasskey}
+            </Button>
+            <Link
+              href="/auth/email-login"
+              className={buttonVariants({ variant: "secondary" })}
+            >
+              {t.auth.troublePasskey}
+            </Link>
+          </>
         )}
 
         {error && (
@@ -176,6 +229,7 @@ export function PasskeyForm({
           className="mt-2 text-center text-sm text-muted-foreground hover:text-foreground"
           onClick={() => {
             setError(null);
+            setSignupLinkSent(false);
             setMode(mode === "register" ? "login" : "register");
           }}
         >
@@ -183,20 +237,12 @@ export function PasskeyForm({
         </button>
 
         {mode === "login" && (
-          <>
-            <Link
-              href="/auth/email-login"
-              className="text-center text-sm text-muted-foreground hover:text-foreground"
-            >
-              {t.auth.troublePasskey}
-            </Link>
-            <Link
-              href="/auth/recover"
-              className="text-center text-sm text-muted-foreground hover:text-foreground"
-            >
-              {t.auth.lostDevice}
-            </Link>
-          </>
+          <Link
+            href="/auth/recover"
+            className="text-center text-sm text-muted-foreground hover:text-foreground"
+          >
+            {t.auth.lostDevice}
+          </Link>
         )}
       </CardContent>
     </Card>

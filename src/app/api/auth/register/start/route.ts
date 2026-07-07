@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { buildEnrollmentOptions } from "@/lib/passkey-enroll";
+import { findOrCreateSignupUser } from "@/lib/signup";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { resolveRequestLocale } from "@/lib/i18n/get-locale";
 
@@ -37,86 +36,30 @@ export async function POST(req: Request) {
     );
   }
 
-  const consentNow = new Date();
-  const consentData = {
-    termsAcceptedAt: consentNow,
-    religiousDataConsentAt: consentNow,
-    ageConfirmedAt: consentNow,
-  };
+  // Enrolling a passkey into a complete account from an unauthenticated
+  // request would be account takeover. Adding a passkey to an existing account
+  // must go through the authenticated /settings flow (or account recovery).
+  const result = await findOrCreateSignupUser(email, displayName);
 
-  // Find-or-create, but key the "already taken" decision on passkey count, not
-  // mere user existence. A user row with zero passkeys is an interrupted signup
-  // that may resume; a row WITH passkeys is a real account — enrolling a passkey
-  // into it from an unauthenticated request would be account takeover. Adding a
-  // passkey to an existing account must go through the authenticated /settings
-  // flow (or account recovery) instead.
-  let user = await prisma.user.findUnique({
-    where: { email },
-    include: { passkeys: true },
-  });
-
-  if (user && user.passkeys.length > 0) {
+  if (result?.status === "complete") {
     return NextResponse.json(
       { error: t.errors.accountExists },
       { status: 409 },
     );
   }
 
-  if (user) {
-    // Resumed interrupted signup: refresh the display name and re-record
-    // consent as of this attempt.
-    user = await prisma.user.update({
-      where: { id: user.id },
-      data: { displayName, ...consentData },
-      include: { passkeys: true },
-    });
-  } else {
-    try {
-      user = await prisma.user.create({
-        data: { email, displayName, ...consentData },
-        include: { passkeys: true },
-      });
-    } catch (e) {
-      // Concurrent signup with the same email raced us to create the row.
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === "P2002"
-      ) {
-        user = await prisma.user.findUnique({
-          where: { email },
-          include: { passkeys: true },
-        });
-        if (user && user.passkeys.length > 0) {
-          return NextResponse.json(
-            { error: t.errors.accountExists },
-            { status: 409 },
-          );
-        }
-        if (user) {
-          user = await prisma.user.update({
-            where: { id: user.id },
-            data: { displayName, ...consentData },
-            include: { passkeys: true },
-          });
-        }
-      } else {
-        throw e;
-      }
-    }
-  }
-
-  if (!user) {
+  if (!result) {
     return NextResponse.json(
       { error: t.errors.couldNotStartRegistration },
       { status: 500 },
     );
   }
 
-  const { options, challenge } = await buildEnrollmentOptions(user.id);
+  const { options, challenge } = await buildEnrollmentOptions(result.user.id);
 
   const session = await getSession();
   session.challenge = challenge;
-  session.pendingUserId = user.id;
+  session.pendingUserId = result.user.id;
   await session.save();
 
   return NextResponse.json(options);

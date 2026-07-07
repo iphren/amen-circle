@@ -66,6 +66,28 @@ describe("register/start — account-takeover guard", () => {
     expect(enrollOpts).not.toHaveBeenCalled();
   });
 
+  it("rejects a zero-passkey account whose email is verified (409)", async () => {
+    // An email-registered account (completed via an emailed link) has no
+    // passkeys but must not be claimable as an "interrupted signup".
+    findUnique.mockResolvedValue({
+      id: "emailuser",
+      passkeys: [],
+      emailVerifiedAt: new Date(),
+    } as never);
+
+    const res = await POST(
+      jsonRequest({
+        email: "emailuser@example.com",
+        displayName: "Mallory",
+        ...consented,
+      }),
+    );
+
+    expect(res.status).toBe(409);
+    expect(update).not.toHaveBeenCalled();
+    expect(enrollOpts).not.toHaveBeenCalled();
+  });
+
   it("creates a passkey enrollment for a brand-new email (200)", async () => {
     findUnique.mockResolvedValue(null);
     create.mockResolvedValue({
@@ -192,6 +214,32 @@ describe("register/start — account-takeover guard", () => {
     );
 
     expect(res.status).toBe(409);
+    expect(enrollOpts).not.toHaveBeenCalled();
+  });
+
+  it("handles the race when the winner is a verified email-registered account (409)", async () => {
+    findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce({
+      id: "winner",
+      passkeys: [],
+      emailVerifiedAt: new Date(),
+    } as never);
+    create.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError("dup", {
+        code: "P2002",
+        clientVersion: "6.19.3",
+      }),
+    );
+
+    const res = await POST(
+      jsonRequest({
+        email: "race@example.com",
+        displayName: "Racer",
+        ...consented,
+      }),
+    );
+
+    expect(res.status).toBe(409);
+    expect(update).not.toHaveBeenCalled();
     expect(enrollOpts).not.toHaveBeenCalled();
   });
 });
