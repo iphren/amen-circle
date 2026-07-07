@@ -69,7 +69,11 @@ function renderEmail(args: {
   bodyIntro: string;
   ctaLabel: string;
   ctaUrl: string;
-  expiryNote: string;
+  expiryNote?: string;
+  // Defaults to the generic "you can safely ignore this" line, which assumes
+  // no action has been taken yet. Override for templates like welcome, where
+  // the account already exists and ignoring it doesn't undo anything.
+  ignoreLine?: string;
 }): { html: string; text: string } {
   const { locale, bodyIntro, ctaLabel, ctaUrl, expiryNote } = args;
   const t = getDictionary(locale);
@@ -77,7 +81,7 @@ function renderEmail(args: {
 
   const safeUrl = escapeHtml(ctaUrl);
   const whyLine = interpolate(t.emails.whyLine, { appName });
-  const ignoreLine = t.emails.ignoreLine;
+  const ignoreLine = args.ignoreLine ?? t.emails.ignoreLine;
 
   const html = `<!DOCTYPE html>
 <html lang="${locale}">
@@ -102,7 +106,7 @@ function renderEmail(args: {
                 </p>
                 <p style="margin:0 0 8px;font-size:13px;color:#52525b;">${escapeHtml(t.emails.orPasteLink)}</p>
                 <p style="margin:0 0 16px;font-size:13px;word-break:break-all;"><a href="${safeUrl}" style="color:#2563eb;">${safeUrl}</a></p>
-                <p style="margin:0 0 16px;font-size:13px;color:#52525b;">${escapeHtml(expiryNote)}</p>
+                ${expiryNote ? `<p style="margin:0 0 16px;font-size:13px;color:#52525b;">${escapeHtml(expiryNote)}</p>` : ""}
                 <p style="margin:0 0 8px;font-size:13px;color:#52525b;">${escapeHtml(ignoreLine)}</p>
               </td>
             </tr>
@@ -127,8 +131,7 @@ function renderEmail(args: {
     `${ctaLabel}:`,
     ctaUrl,
     "",
-    expiryNote,
-    "",
+    ...(expiryNote ? [expiryNote, ""] : []),
     ignoreLine,
     "",
     "—",
@@ -192,6 +195,20 @@ function registrationLinkEmailTemplate(
   return { subject: t.emails.registrationLink.subject, html, text };
 }
 
+function welcomeEmailTemplate(appUrl: string, locale: Locale): EmailTemplate {
+  const t = getDictionary(locale);
+  const { html, text } = renderEmail({
+    locale,
+    bodyIntro: interpolate(t.emails.welcome.bodyIntro, {
+      appName: t.common.appName,
+    }),
+    ctaLabel: t.emails.welcome.ctaLabel,
+    ctaUrl: appUrl,
+    ignoreLine: t.emails.welcome.ignoreLine,
+  });
+  return { subject: t.emails.welcome.subject, html, text };
+}
+
 async function deliver(to: string, template: EmailTemplate): Promise<void> {
   await getClient().send(
     new SendEmailCommand({
@@ -242,6 +259,17 @@ export async function sendRegistrationLinkEmail(args: {
   );
 }
 
+export async function sendWelcomeEmail(args: {
+  to: string;
+  appUrl: string;
+  locale?: Locale;
+}): Promise<void> {
+  await deliver(
+    args.to,
+    welcomeEmailTemplate(args.appUrl, args.locale ?? DEFAULT_LOCALE),
+  );
+}
+
 // Sample data for local template previews (see src/app/dev/emails). Building
 // these doesn't touch the SES client, so no AWS credentials are needed. Preview
 // labels use the default locale.
@@ -272,5 +300,10 @@ export const PREVIEW_EMAIL_TEMPLATES: Record<
         "https://amencircle.com/auth/email-login?token=sample-preview-token",
         locale,
       ),
+  },
+  welcome: {
+    label: getDictionary(DEFAULT_LOCALE).emails.welcome.previewLabel,
+    build: (locale = DEFAULT_LOCALE) =>
+      welcomeEmailTemplate("https://amencircle.com/dashboard", locale),
   },
 };

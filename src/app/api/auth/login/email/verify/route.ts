@@ -1,9 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { hashRecoveryToken } from "@/lib/recovery-token";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { resolveRequestLocale } from "@/lib/i18n/get-locale";
+import { sendWelcomeEmail } from "@/lib/email";
+import { origin } from "@/lib/webauthn";
 
 interface LoginEmailVerifyBody {
   token?: string;
@@ -12,7 +14,8 @@ interface LoginEmailVerifyBody {
 // Consume a raw email sign-in token and log the user in. Unlike recovery, this
 // grants a session directly — no passkey ceremony.
 export async function POST(req: Request) {
-  const t = getDictionary(await resolveRequestLocale());
+  const requestLocale = await resolveRequestLocale();
+  const t = getDictionary(requestLocale);
   const body = (await req.json()) as LoginEmailVerifyBody;
   const raw = body.token?.trim();
 
@@ -40,10 +43,28 @@ export async function POST(req: Request) {
   // Consuming an emailed token proves ownership of the address. This is what
   // completes an email-based registration (see /api/auth/register/email/start):
   // a verified zero-passkey account is no longer a claimable interrupted signup.
-  await prisma.user.updateMany({
+  // A count of 1 means this consumption is what first set emailVerifiedAt (vs.
+  // an already-verified user reusing this same route for an ordinary sign-in).
+  const verified = await prisma.user.updateMany({
     where: { id: token.userId, emailVerifiedAt: null },
     data: { emailVerifiedAt: new Date() },
   });
+
+  if (verified.count === 1) {
+    const user = await prisma.user.findUnique({
+      where: { id: token.userId },
+      select: { email: true },
+    });
+    if (user) {
+      after(() =>
+        sendWelcomeEmail({
+          to: user.email,
+          appUrl: `${origin}/dashboard`,
+          locale: requestLocale,
+        }).catch((err) => console.error("welcome email send failed", err)),
+      );
+    }
+  }
 
   const session = await getSession();
   session.userId = token.userId;

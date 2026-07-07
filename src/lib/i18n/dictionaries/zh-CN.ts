@@ -365,6 +365,13 @@ export const zhCN: DeepPartial<Dictionary> = {
       ctaLabel: "激活我的账号",
       expiryNote: "此链接将在 15 分钟后过期，且只能使用一次。",
     },
+    welcome: {
+      subject: "欢迎加入同心圆",
+      previewLabel: "欢迎邮件",
+      bodyIntro: "你的 {appName} 账号已经准备就绪。",
+      ctaLabel: "打开同心圆",
+      ignoreLine: "如果这不是你本人创建的账号，请登录后在「设置」中删除该账号。",
+    },
   },
 
   errors: {

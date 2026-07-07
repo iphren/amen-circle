@@ -391,6 +391,15 @@ export const enGB = {
       ctaLabel: "Activate my account",
       expiryNote: "This link expires in 15 minutes and can be used once.",
     },
+    welcome: {
+      subject: "Welcome to Amen Circle",
+      previewLabel: "Welcome email",
+      // {appName} interpolated
+      bodyIntro: "Your {appName} account is ready.",
+      ctaLabel: "Open Amen Circle",
+      ignoreLine:
+        "If you didn't create this account, sign in and delete it from Settings.",
+    },
   },
 
   // Error messages returned by API route handlers and shown to the user. The
