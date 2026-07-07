@@ -449,7 +449,7 @@ export const zhCN: DeepPartial<Dictionary> = {
                 "**通行密钥元数据** — 用于登录的公钥和设备信息。你的生物识别信息（指纹、面容）始终留在你的设备上，绝不会发送给我们。",
                 "**代祷事项** — 你写下的自由文本内容。由于代祷内容可能透露你的宗教信仰，根据英国 GDPR 第 9 条，这属于**特殊类别数据**；我们只会在你明确同意后处理。",
                 "**祷告房间成员关系** — 你属于哪些祷告房间，以及哪些代祷事项被分配给你。",
-                "**会话 Cookie** — 一个严格必要的 Cookie，用于保持登录状态（见第 5 节）。",
+                "**Cookie** — 用于保持登录状态并记住你的语言选择（见第 5 节）。",
                 "**访问日志** — 我们的托管服务商 AWS 会在服务器日志中记录 IP 地址和请求元数据，用于安全和故障排查。",
               ],
             },
@@ -482,7 +482,7 @@ export const zhCN: DeepPartial<Dictionary> = {
           blocks: [
             {
               type: "p",
-              md: "我们只设置一个 Cookie：`amen-circle-session`。它是保持登录状态所严格必要的 Cookie，具有 httpOnly 属性，最长保留 30 天，且不包含任何追踪标识符。由于它是严格必要的，根据 PECR 不需要 Cookie 同意横幅。我们不使用任何分析 Cookie 或第三方 Cookie。",
+              md: "我们设置两个第一方 Cookie：`amen-circle-session` 用于保持登录状态，属于严格必要的 Cookie；`locale` 用于记住你的语言选择。会话 Cookie 具有 httpOnly 属性，使用 SameSite=Lax，最长保留 30 天，且不包含任何追踪标识符。语言 Cookie 使用 SameSite=Lax，最长保留一年，且不会用于追踪。由于这些 Cookie 是提供你请求的服务或记住你的偏好所必需的，根据 PECR 不需要 Cookie 同意横幅。我们不使用任何分析 Cookie 或第三方 Cookie。",
             },
           ],
         },

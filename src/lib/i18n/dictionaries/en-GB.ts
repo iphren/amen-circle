@@ -483,7 +483,7 @@ export const enGB = {
                 "**Passkey metadata** — a public key and device information used to sign you in. Your biometrics (fingerprint, face) never leave your device and are never sent to us.",
                 "**Prayer requests** — the free-text requests you write. Because prayer content can reveal your religious beliefs, this is **special category data** under UK GDPR Article 9, and we only process it with your explicit consent.",
                 "**Circle membership** — which circles you belong to and which requests are assigned to you.",
-                "**Session cookie** — a single strictly-necessary cookie that keeps you signed in (see section 5).",
+                "**Cookies** — cookies that keep you signed in and remember your language choice (see section 5).",
                 "**Access logs** — our hosting provider (AWS) records IP addresses and request metadata in server logs for security and troubleshooting.",
               ],
             },
@@ -516,7 +516,7 @@ export const enGB = {
           blocks: [
             {
               type: "p",
-              md: "We set exactly one cookie, `amen-circle-session`, which is strictly necessary to keep you signed in. It is httpOnly, lasts up to 30 days, and contains no tracking identifiers. Because it is strictly necessary, no cookie consent banner is required under PECR. We use no analytics or third-party cookies of any kind.",
+              md: "We set two first-party cookies: `amen-circle-session`, which is strictly necessary to keep you signed in, and `locale`, which remembers your language choice. The session cookie is httpOnly, uses SameSite=Lax, lasts up to 30 days, and contains no tracking identifiers. The language cookie uses SameSite=Lax, lasts up to one year, and is not used for tracking. Because these cookies are necessary to provide the service you request or remember your preferences, no cookie consent banner is required under PECR. We use no analytics or third-party cookies of any kind.",
             },
           ],
         },
