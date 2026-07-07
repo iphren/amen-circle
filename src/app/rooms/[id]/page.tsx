@@ -213,7 +213,7 @@ export default async function RoomPage({
         <PrayerRules
           title={t.landing.prayerRulesTitle}
           rules={t.landing.prayerRules}
-          highlightedSteps={isOpen ? [1, 2] : [3]}
+          highlightedSteps={isOpen ? [1, 2] : [3, 4]}
           className="mt-8 max-w-2xl border-t pt-6"
         />
       </main>
