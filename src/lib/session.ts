@@ -12,14 +12,17 @@ if (!sessionPassword) {
   throw new Error("SESSION_SECRET env var is required");
 }
 
+const sessionTtlSeconds = 60 * 60 * 24 * 30;
+
 export const sessionOptions: SessionOptions = {
   password: sessionPassword,
   cookieName: "amen-circle-session",
+  ttl: sessionTtlSeconds,
   cookieOptions: {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 60 * 60 * 24 * 30,
+    sameSite: "lax",
+    maxAge: sessionTtlSeconds,
     path: "/",
   },
 };

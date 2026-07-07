@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   startAuthentication,
@@ -31,7 +30,6 @@ export function PasskeyForm({
   next?: string;
 }) {
   const t = useTranslations();
-  const router = useRouter();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -70,8 +68,7 @@ export function PasskeyForm({
         const j = await verifyRes.json().catch(() => ({}));
         throw new Error(j.error ?? t.auth.errors.registrationVerificationFailed);
       }
-      router.push(next);
-      router.refresh();
+      window.location.replace(next);
     } catch (e) {
       setError(e instanceof Error ? e.message : t.auth.errors.registrationFailed);
     } finally {
@@ -124,8 +121,7 @@ export function PasskeyForm({
         const j = await verifyRes.json().catch(() => ({}));
         throw new Error(j.error ?? t.auth.errors.signInFailed);
       }
-      router.push(next);
-      router.refresh();
+      window.location.replace(next);
     } catch (e) {
       setError(e instanceof Error ? e.message : t.auth.errors.signInFailed);
     } finally {

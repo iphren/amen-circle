@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,7 +14,6 @@ import { useTranslations } from "@/components/i18n-provider";
 
 export function EmailLoginConfirm({ token }: { token: string }) {
   const t = useTranslations();
-  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,8 +30,7 @@ export function EmailLoginConfirm({ token }: { token: string }) {
         const j = await res.json().catch(() => ({}));
         throw new Error(j.error ?? t.emailLogin.invalidLink);
       }
-      router.push("/dashboard");
-      router.refresh();
+      window.location.replace("/dashboard");
     } catch (e) {
       setError(e instanceof Error ? e.message : t.auth.errors.signInFailed);
     } finally {
