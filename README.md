@@ -139,6 +139,11 @@ DATABASE_URL=postgresql://postgres:<password>@localhost:15432/amen_circle \
 Everything else (GHCR push/pull auth) uses the workflow's ephemeral
 `GITHUB_TOKEN`; no PATs are stored anywhere, including on the server.
 
+The server's security group keeps port 22 closed to the internet. The deploy
+job assumes an IAM role via GitHub OIDC (`infra/github-actions.tf`, no AWS
+keys in GitHub), opens port 22 to the runner's own IP for the duration of the
+deploy, and revokes the rule in an `always()` cleanup step.
+
 Note: deploys no longer update the server's git checkout at
 `/home/ubuntu/apps/amen-circle` (they `scp` the compose file instead).
 Cron'd scripts there (`scripts/backup-db.sh`) keep working but only pick up

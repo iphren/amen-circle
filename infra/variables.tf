@@ -53,6 +53,16 @@ variable "origin_server_ip" {
   default     = ""
 }
 
+# Security group of the EC2 origin server (the shared, hand-managed
+# "websites" SG — the instance itself is not Terraform-managed). The GitHub
+# Actions deploy role may add/remove port-22 ingress rules on it; see
+# github-actions.tf.
+variable "origin_security_group_id" {
+  type        = string
+  description = "Security group id of the EC2 origin server"
+  default     = "sg-000ab36330d861050"
+}
+
 # Full RFC 5322 "From" header used for account-recovery emails (may include a
 # display name). The address part must belong to the verified SES identity.
 variable "email_from" {

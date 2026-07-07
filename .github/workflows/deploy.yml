@@ -93,8 +93,15 @@ jobs:
     permissions:
       contents: read
       packages: read
+      id-token: write # OIDC federation into the AWS deploy role
     env:
       ROLLBACK: ${{ github.event_name == 'workflow_dispatch' && inputs.sha != '' }}
+      # The server's SG keeps port 22 closed; the steps below open it to this
+      # runner's IP for the duration of the deploy. Role + policy live in
+      # infra/github-actions.tf.
+      AWS_REGION: eu-west-2
+      DEPLOY_ROLE_ARN: arn:aws:iam::387479857085:role/amen-circle-deploy
+      ORIGIN_SG_ID: sg-000ab36330d861050
     steps:
       # Check out the deployed SHA so the scp'd compose file and the schema
       # used by db push match the image being deployed.
@@ -104,6 +111,23 @@ jobs:
 
       - name: Resolve image tag
         run: echo "IMAGE_TAG=sha-${{ inputs.sha || github.sha }}" >> "$GITHUB_ENV"
+
+      - uses: aws-actions/configure-aws-credentials@254c19bd240aabef8777f48595e9d2d7b972184b # v6.2.1
+        with:
+          role-to-assume: ${{ env.DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Open SSH ingress for this runner
+        run: |
+          RUNNER_IP="$(curl -fsS https://checkip.amazonaws.com)"
+          echo "RUNNER_IP=$RUNNER_IP" >> "$GITHUB_ENV"
+          out=$(aws ec2 authorize-security-group-ingress \
+            --group-id "$ORIGIN_SG_ID" \
+            --ip-permissions "IpProtocol=tcp,FromPort=22,ToPort=22,IpRanges=[{CidrIp=$RUNNER_IP/32,Description=github-actions deploy run ${{ github.run_id }}}]" \
+            2>&1) || {
+              # A leftover rule from a crashed run on the same IP is fine.
+              echo "$out" | grep -q InvalidPermission.Duplicate || { echo "$out" >&2; exit 1; }
+            }
 
       - name: Set up SSH
         run: |
@@ -139,3 +163,10 @@ jobs:
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./scripts/deploy.sh
+
+      - name: Revoke SSH ingress
+        if: always() && env.RUNNER_IP != ''
+        run: |
+          aws ec2 revoke-security-group-ingress \
+            --group-id "$ORIGIN_SG_ID" \
+            --protocol tcp --port 22 --cidr "$RUNNER_IP/32"
