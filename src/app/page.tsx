@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
+import { PrayerRules } from "@/components/prayer-rules";
 import { cn } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/current-user";
 import { getLocale } from "@/lib/i18n/get-locale";
@@ -43,21 +44,11 @@ export default async function Home() {
           </Link>
         </div>
 
-        <section className="blur-fade-up mt-10 text-left [--enter-delay:600ms]">
-          <h2 className="text-sm font-semibold tracking-tight">
-            {t.landing.prayerRulesTitle}
-          </h2>
-          <ol className="mt-3 space-y-3 text-sm leading-relaxed text-muted-foreground">
-            {t.landing.prayerRules.map((rule, index) => (
-              <li key={rule} className="flex gap-3">
-                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border text-xs font-medium text-foreground">
-                  {index + 1}
-                </span>
-                <span>{rule}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
+        <PrayerRules
+          title={t.landing.prayerRulesTitle}
+          rules={t.landing.prayerRules}
+          className="blur-fade-up mt-10 [--enter-delay:600ms]"
+        />
       </div>
     </main>
   );

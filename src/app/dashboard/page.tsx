@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCurrentUser } from "@/lib/current-user";
 import { SiteNav } from "@/components/site-nav";
 import { ConsentGate } from "@/components/consent-gate";
+import { PrayerRules } from "@/components/prayer-rules";
 import {
   Card,
   CardContent,
@@ -34,7 +35,15 @@ export default async function DashboardPage() {
       <>
         <SiteNav user={user} />
         <main className="max-w-5xl p-8 lg:mx-auto">
-          <ConsentGate />
+          <div className="flex flex-col gap-8">
+            <ConsentGate />
+            <PrayerRules
+              title={t.landing.prayerRulesTitle}
+              rules={t.landing.prayerRules}
+              highlightedSteps={[1]}
+              className="mx-auto max-w-md border-t pt-6"
+            />
+          </div>
         </main>
       </>
     );
@@ -111,6 +120,13 @@ export default async function DashboardPage() {
               </ul>
             )}
           </section>
+
+          <PrayerRules
+            title={t.landing.prayerRulesTitle}
+            rules={t.landing.prayerRules}
+            highlightedSteps={[1]}
+            className="max-w-2xl border-t pt-6"
+          />
         </div>
       </main>
     </>

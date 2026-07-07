@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCurrentUser } from "@/lib/current-user";
 import { decryptContent } from "@/lib/crypto";
 import { SiteNav } from "@/components/site-nav";
+import { PrayerRules } from "@/components/prayer-rules";
 import { RevealableContent } from "@/components/revealable-content";
 import { UserChip } from "@/components/user-chip";
 import { formatDate, cn } from "@/lib/utils";
@@ -112,63 +113,79 @@ async function ReceivedList({
 
   if (items.length === 0) {
     return (
-      <p className="mt-8 text-sm text-muted-foreground">
-        {t.myPrayers.receivedEmpty}
-      </p>
+      <>
+        <p className="mt-8 text-sm text-muted-foreground">
+          {t.myPrayers.receivedEmpty}
+        </p>
+        <PrayerRules
+          title={t.landing.prayerRulesTitle}
+          rules={t.landing.prayerRules}
+          highlightedSteps={[4]}
+          className="mt-8 max-w-2xl border-t pt-6"
+        />
+      </>
     );
   }
 
   return (
-    <ul className="mt-8 flex flex-col gap-4">
-      {items.map((it) => (
-        <li key={it.id}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex min-w-0 items-center justify-between gap-2 text-base">
-                <Link
-                  href={`/rooms/${it.roomId}`}
-                  className="min-w-0 truncate hover:underline"
+    <>
+      <ul className="mt-8 flex flex-col gap-4">
+        {items.map((it) => (
+          <li key={it.id}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex min-w-0 items-center justify-between gap-2 text-base">
+                  <Link
+                    href={`/rooms/${it.roomId}`}
+                    className="min-w-0 truncate hover:underline"
+                  >
+                    {it.roomName}
+                  </Link>
+                  <span className="flex shrink-0 items-center gap-1.5">
+                    {it.answeredAt && (
+                      <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                        {t.myPrayers.prayerAnswered}
+                      </span>
+                    )}
+                    {it.isConfidential && (
+                      <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                        {t.myPrayers.confidential}
+                      </span>
+                    )}
+                  </span>
+                </CardTitle>
+                <CardDescription className="flex flex-wrap items-center gap-1.5">
+                  {t.myPrayers.fromLabel} <UserChip name={it.authorName} /> ·{" "}
+                  {formatDate(it.createdAt, locale)}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3">
+                <RevealableContent
+                  content={it.content}
+                  isConfidential={it.isConfidential}
+                />
+                {/* The only place users see others' content, so the
+                    report route lives here (see terms §6). */}
+                <a
+                  className="self-end text-xs text-muted-foreground hover:underline"
+                  href={`mailto:${OPERATOR.contactEmail}?subject=${encodeURIComponent(
+                    interpolate(t.myPrayers.reportSubject, { id: it.id }),
+                  )}`}
                 >
-                  {it.roomName}
-                </Link>
-                <span className="flex shrink-0 items-center gap-1.5">
-                  {it.answeredAt && (
-                    <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                      {t.myPrayers.prayerAnswered}
-                    </span>
-                  )}
-                  {it.isConfidential && (
-                    <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                      {t.myPrayers.confidential}
-                    </span>
-                  )}
-                </span>
-              </CardTitle>
-              <CardDescription className="flex flex-wrap items-center gap-1.5">
-                {t.myPrayers.fromLabel} <UserChip name={it.authorName} /> ·{" "}
-                {formatDate(it.createdAt, locale)}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              <RevealableContent
-                content={it.content}
-                isConfidential={it.isConfidential}
-              />
-              {/* The only place users see others' content, so the
-                  report route lives here (see terms §6). */}
-              <a
-                className="self-end text-xs text-muted-foreground hover:underline"
-                href={`mailto:${OPERATOR.contactEmail}?subject=${encodeURIComponent(
-                  interpolate(t.myPrayers.reportSubject, { id: it.id }),
-                )}`}
-              >
-                {t.myPrayers.report}
-              </a>
-            </CardContent>
-          </Card>
-        </li>
-      ))}
-    </ul>
+                  {t.myPrayers.report}
+                </a>
+              </CardContent>
+            </Card>
+          </li>
+        ))}
+      </ul>
+      <PrayerRules
+        title={t.landing.prayerRulesTitle}
+        rules={t.landing.prayerRules}
+        highlightedSteps={[4]}
+        className="mt-8 max-w-2xl"
+      />
+    </>
   );
 }
 
@@ -207,42 +224,60 @@ async function SentList({
 
   if (items.length === 0) {
     return (
-      <p className="mt-8 text-sm text-muted-foreground">
-        {t.myPrayers.sentEmpty}
-      </p>
+      <>
+        <p className="mt-8 text-sm text-muted-foreground">
+          {t.myPrayers.sentEmpty}
+        </p>
+        <PrayerRules
+          title={t.landing.prayerRulesTitle}
+          rules={t.landing.prayerRules}
+          highlightedSteps={[5, 6, 7]}
+          className="mt-8 max-w-2xl border-t pt-6"
+        />
+      </>
     );
   }
 
   return (
-    <ul className="mt-8 flex flex-col gap-4">
-      {items.map((it) => (
-        <li key={it.id}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex min-w-0 items-center justify-between gap-2 text-base">
-                <Link
-                  href={`/rooms/${it.roomId}`}
-                  className="min-w-0 truncate hover:underline"
-                >
-                  {it.roomName}
-                </Link>
-                {it.isConfidential && (
-                  <span className="shrink-0 rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                    {t.myPrayers.confidential}
-                  </span>
-                )}
-              </CardTitle>
-              <CardDescription>{formatDate(it.createdAt, locale)}</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                {it.content}
-              </p>
-              <SentRequestActions id={it.id} answered={it.answered} />
-            </CardContent>
-          </Card>
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul className="mt-8 flex flex-col gap-4">
+        {items.map((it) => (
+          <li key={it.id}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex min-w-0 items-center justify-between gap-2 text-base">
+                  <Link
+                    href={`/rooms/${it.roomId}`}
+                    className="min-w-0 truncate hover:underline"
+                  >
+                    {it.roomName}
+                  </Link>
+                  {it.isConfidential && (
+                    <span className="shrink-0 rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                      {t.myPrayers.confidential}
+                    </span>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  {formatDate(it.createdAt, locale)}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3">
+                <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                  {it.content}
+                </p>
+                <SentRequestActions id={it.id} answered={it.answered} />
+              </CardContent>
+            </Card>
+          </li>
+        ))}
+      </ul>
+      <PrayerRules
+        title={t.landing.prayerRulesTitle}
+        rules={t.landing.prayerRules}
+        highlightedSteps={[5, 6, 7]}
+        className="mt-8 max-w-2xl"
+      />
+    </>
   );
 }

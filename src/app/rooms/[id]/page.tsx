@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCurrentUser } from "@/lib/current-user";
 import { decryptContent } from "@/lib/crypto";
 import { SiteNav } from "@/components/site-nav";
+import { PrayerRules } from "@/components/prayer-rules";
 import {
   Card,
   CardContent,
@@ -208,6 +209,13 @@ export default async function RoomPage({
             </Card>
           </aside>
         </div>
+
+        <PrayerRules
+          title={t.landing.prayerRulesTitle}
+          rules={t.landing.prayerRules}
+          highlightedSteps={isOpen ? [1, 2] : [3]}
+          className="mt-8 max-w-2xl border-t pt-6"
+        />
       </main>
     </>
   );
