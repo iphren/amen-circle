@@ -515,6 +515,7 @@ export const enGB = {
                 "Prayer requests are deleted when you delete them, leave a circle, a circle is deleted, or you delete your account.",
                 "Expired sign-in and recovery links are purged automatically.",
                 "Server access logs are retained for 30 days.",
+                "Encrypted database backups are kept for up to 30 days. Data you delete is removed from the live database immediately and ages out of backups within that window.",
               ],
             },
           ],
