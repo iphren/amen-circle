@@ -501,7 +501,7 @@ export const enGB = {
           blocks: [
             {
               type: "p",
-              md: "All prayer request content is encrypted at rest (AES-256-GCM). Sign-in uses passkeys, so we never store passwords. Sign-in and recovery links are single-use, short-lived, and stored only as hashes.",
+              md: "All prayer request content is encrypted at rest (AES-256-GCM), in addition to disk-level encryption on our server. Sign-in uses passkeys, so we never store passwords. Sign-in and recovery links are single-use, short-lived, and stored only as hashes.",
             },
           ],
         },
