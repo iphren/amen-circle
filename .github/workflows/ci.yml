@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx prisma generate
+
+      - run: npm run lint
+
+      - run: npm test
+
+      # Same build-only placeholders as the Dockerfile: collecting page data
+      # imports route modules, which fail fast without these set. Nothing
+      # derived from them lands in the build output (all routes are dynamic).
+      - run: npm run build
+        env:
+          SESSION_SECRET: build-placeholder-must-be-32-chars-long
+          ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+          DATABASE_URL: postgresql://build:build@localhost:5432/build
+          NEXT_TELEMETRY_DISABLED: "1"
+
+  # Posts the SQL implied by a prisma/schema.prisma change as a PR comment and
+  # warns on destructive statements. Warn-only: the deploy workflow's
+  # `prisma db push` (without --accept-data-loss) is the hard gate — it fails
+  # the deploy rather than lose data.
+  schema-diff:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check whether schema changed
+        id: changed
+        run: |
+          git fetch origin "$GITHUB_BASE_REF" --depth=1
+          git show "FETCH_HEAD:prisma/schema.prisma" > "$RUNNER_TEMP/base.prisma"
+          if cmp -s "$RUNNER_TEMP/base.prisma" prisma/schema.prisma; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v5
+        if: steps.changed.outputs.changed == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+        if: steps.changed.outputs.changed == 'true'
+
+      - name: Generate SQL diff
+        if: steps.changed.outputs.changed == 'true'
+        run: |
+          npx prisma migrate diff \
+            --from-schema-datamodel "$RUNNER_TEMP/base.prisma" \
+            --to-schema-datamodel prisma/schema.prisma \
+            --script > "$RUNNER_TEMP/diff.sql"
+
+      - name: Compose comment
+        if: steps.changed.outputs.changed == 'true'
+        run: |
+          {
+            echo "### Prisma schema diff"
+            echo
+            if grep -Eiq 'DROP TABLE|DROP INDEX|ALTER TABLE .* DROP|TRUNCATE' "$RUNNER_TEMP/diff.sql"; then
+              echo "> [!WARNING]"
+              echo "> **Destructive statements detected.** The deploy's \`prisma db push\` will refuse these and fail the deploy; apply manually per the README's schema-changes procedure."
+              echo
+            fi
+            echo "SQL to go from \`$GITHUB_BASE_REF\` to this branch:"
+            echo
+            echo '```sql'
+            cat "$RUNNER_TEMP/diff.sql"
+            echo '```'
+          } > "$RUNNER_TEMP/comment.md"
+
+      - name: Post sticky comment
+        if: steps.changed.outputs.changed == 'true'
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          header: schema-diff
+          path: ${{ runner.temp }}/comment.md

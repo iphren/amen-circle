@@ -91,9 +91,58 @@ distributions, ACM certs, SES identity, Route 53 records) live in `infra/` as
 Terraform; runtime secrets live in `.env.production` on the server (mirrored
 in SSM Parameter Store).
 
-Deploys: `DEPLOY_HOST=ubuntu@<server> ./scripts/deploy.sh` (builds on the
-server from `origin/main` and health-checks before finishing). The
-Amplify→EC2 migration runbook is in `deploy/cutover-runbook.md`.
+### Deploys
+
+Every push to `main` deploys automatically via GitHub Actions
+(`.github/workflows/deploy.yml`): checks (lint, tests, build) → Docker image
+built and pushed to `ghcr.io/iphren/amen-circle` (tagged `sha-<commit>` +
+`latest`) → `prisma db push` over an SSH tunnel → the server pulls the image
+and restarts the stack, gated on a health check. Pull requests get the same
+checks plus a `schema-diff` comment showing the SQL any `schema.prisma`
+change implies (`.github/workflows/ci.yml`).
+
+**Rollback:** run the Deploy workflow manually (`workflow_dispatch`) with the
+full SHA of a previously built image. This skips checks, build, and
+`db push` (schema is never rolled back automatically) and redeploys that
+image.
+
+**Manual deploy** still works from any machine with SSH + GHCR access:
+
+```bash
+DEPLOY_HOST=ubuntu@<server> GHCR_TOKEN="$(gh auth token)" ./scripts/deploy.sh
+```
+
+(`gh auth token` needs the `read:packages` scope: `gh auth refresh -s
+read:packages`. `IMAGE_TAG=sha-<commit>` selects a specific image; default
+`latest`.)
+
+**Schema changes:** additive changes are applied by the deploy workflow
+automatically. `prisma db push` runs *without* `--accept-data-loss`, so a
+change that would lose data fails the deploy while the old app keeps running.
+Apply those deliberately by hand:
+
+```bash
+ssh -N -L 15432:127.0.0.1:15432 ubuntu@<server> &
+DATABASE_URL=postgresql://postgres:<password>@localhost:15432/amen_circle \
+  npx prisma db push --accept-data-loss
+```
+
+**Repo secrets** (Settings → Secrets and variables → Actions):
+
+| Secret | Value |
+|---|---|
+| `DEPLOY_HOST` | `ubuntu@<server>` |
+| `DEPLOY_SSH_KEY` | private half of the dedicated ed25519 deploy keypair (public half in the server's `authorized_keys`) |
+| `DEPLOY_KNOWN_HOSTS` | `ssh-keyscan -H <server>` output, captured once from a trusted machine |
+| `PROD_DATABASE_URL` | `postgresql://postgres:<POSTGRES_PASSWORD>@127.0.0.1:15432/amen_circle` — **must be updated together with** `POSTGRES_PASSWORD` in the server's `.env.production` if the password is ever rotated |
+
+Everything else (GHCR push/pull auth) uses the workflow's ephemeral
+`GITHUB_TOKEN`; no PATs are stored anywhere, including on the server.
+
+Note: deploys no longer update the server's git checkout at
+`/home/ubuntu/apps/amen-circle` (they `scp` the compose file instead).
+Cron'd scripts there (`scripts/backup-db.sh`) keep working but only pick up
+changes after a manual `git pull` on the server.
 
 Email: SES is accessed via an explicit, tightly-scoped IAM access key
 (`SES_*` env vars) rather than the shared server's instance role. A new SES

@@ -1,5 +1,9 @@
 # Production stack for the EC2 server. Local dev uses docker-compose.yml.
 #
+# Deploys come from GHCR via scripts/deploy.sh (run by GitHub Actions on push
+# to main, or manually). IMAGE_TAG (sha-<commit>) is passed in the environment
+# by deploy.sh — it is NOT read from .env.production.
+#
 # Usage (on the server, from /home/ubuntu/apps/amen-circle):
 #   docker compose --env-file .env.production -f docker-compose.prod.yml up -d
 #
@@ -12,6 +16,9 @@
 # DATABASE_URL (postgresql://postgres:<password>@db:5432/amen_circle).
 services:
   app:
+    image: ghcr.io/iphren/amen-circle:${IMAGE_TAG:-latest}
+    # Emergency fallback only — compose uses the image above when it exists
+    # and builds here only when it is absent (e.g. GHCR unreachable).
     build: .
     restart: unless-stopped
     env_file: .env.production
